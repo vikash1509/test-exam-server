@@ -1,10 +1,15 @@
 package com.exam.serviceImpl;
+import com.exam.entity.TestLink;
 import com.exam.entity.TestResult;
+import com.exam.entity.User;
 import com.exam.repository.TestResultRepository;
+import com.exam.repository.TestLinkRepository;
+import com.exam.repository.UserRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +20,7 @@ import java.io.InputStreamReader;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +29,10 @@ public class TestResultServiceImpl {
     private static final String OUTPUT_CSV_PATH = "TestResult.csv";
     @Autowired
     private TestResultRepository testResultRepository;
+    @Autowired
+    private TestLinkRepository testLinkRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Delete old test results by testId and save the updated ones.
@@ -43,7 +53,7 @@ public class TestResultServiceImpl {
                     testResult.setSubmittedTime(data[1]);
                     testResult.setName(data[2]);
                     testResult.setUserId(data[3]);
-                    testResult.setMarks(data[4]);
+                    testResult.setMarks(Integer.parseInt(data[4]));
                     testResult.setResult(data[5]);
 //                    testResult.setAnswerSheetLink(data[4]);
                     testResult.setTestId(testId);
@@ -59,9 +69,24 @@ public class TestResultServiceImpl {
 
         // Calculate rank based on minimum timeDuration and maximum score (assuming result is the score)
         testResults = calculateRank(testResults);
-
-
         createOutputCSV(testResults);
+
+        // Calculate the total marks from TestLink entity using testId
+        TestLink testLink = testLinkRepository.findById(testId)
+                .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
+        double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
+
+        // Calculate the average marks of all students
+        int avgMarks = (int) testResults.stream()
+                .mapToDouble(TestResult::getMarks)
+                .average()
+                .orElse(0.0);
+
+        for (TestResult result : testResults) {
+            int studentMarks = result.getMarks();
+            int marksDifference = (int) (((studentMarks - avgMarks) / totalMarks) * 100);
+            result.setMarksDifference(marksDifference);
+        }
 
         // Save to database
         return testResultRepository.saveAll(testResults);
@@ -103,7 +128,7 @@ public class TestResultServiceImpl {
                         result.getUserId(),
                         result.getName(),
                         result.getSubmittedTime(),
-                        result.getMarks(),
+                        String.valueOf(result.getMarks()),
                         result.getResult(),
                         String.valueOf(result.getTimeDuration()),
                         String.valueOf(result.getRank())
@@ -113,6 +138,66 @@ public class TestResultServiceImpl {
         }
     }
 
+
+    @Transactional
+    public void updateUserRatings(Long testId) {
+        // Fetch test results for the given testId
+        List<TestResult> testResults = testResultRepository.findByTestId(testId);
+
+        // Iterate over each test result and update the user's rating
+        for (TestResult result : testResults) {
+            String userId = result.getUserId();
+            int marksDifference = result.getMarksDifference();
+
+            // Fetch the user entity by userId
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                System.out.println("in ---- updateUserRatings");
+
+                User user = optionalUser.get();
+                System.out.println("in ---- updateUserRatings----2");
+
+                // Update user's rating based on marksDifference logic
+                int currentRating = user.getUserRating();
+                int updatedRating = calculateNewRating(currentRating, marksDifference);
+                user.setUserRating(updatedRating);
+
+                // Save updated user entity
+                userRepository.save(user);
+            }
+            // If user is not found, skip to next iteration without throwing an error
+        }
+
+        // After updating all user ratings, update the rank for all users based on descending order of rating
+        updateUserRankings();
+    }
+
+    // Method to calculate new rating based on existing rating and marks difference
+    private int calculateNewRating(int currentRating, int marksDifference) {
+        // Implement your rating calculation logic here
+        return currentRating + marksDifference;  // Example logic
+    }
+
+    // Method to update user ranks based on rating
+    private void updateUserRankings() {
+        // Fetch all users and sort by rating in descending order
+        System.out.println("in ---- updateUserRankings");
+        List<User> users = userRepository.findAll(Sort.by(Sort.Direction.DESC, "userRating"));
+        System.out.println("in ---- updateUserRankings---2" + users);
+
+        // Assign ranks based on sorted order
+        for (int i = 0; i < users.size(); i++) {
+            System.out.println("size--" + users.size());
+
+            User user = users.get(i);
+            if (user != null) {
+                user.setUserRank(i + 1);
+                userRepository.save(user); // Save the updated rank
+            } else {
+                System.out.println("User at index " + i + " is null.");
+            }
+        }
+    }
     /**
      * Return the generated output CSV file.
      */

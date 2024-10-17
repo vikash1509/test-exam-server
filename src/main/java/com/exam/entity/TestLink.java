@@ -1,9 +1,6 @@
 package com.exam.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 //import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -20,7 +17,8 @@ public class TestLink {
 
     @Id
     @Column(name = "test_id")
-    private String testId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long testId;
 
     @Column(name = "test_name")
     private String testName;
@@ -60,11 +58,22 @@ public class TestLink {
     @Column(name = "crate_date")
     private Date createDate;
 
-    public String getTestId() {
+    public int getTestTotalMarks() {
+        return testTotalMarks;
+    }
+
+    public void setTestTotalMarks(int testTotalMarks) {
+        this.testTotalMarks = testTotalMarks;
+    }
+
+    @Column(name = "total_marks")
+    private int testTotalMarks;
+
+    public Long getTestId() {
         return testId;
     }
 
-    public void setTestId(String testId) {
+    public void setTestId(Long testId) {
         this.testId = testId;
     }
 

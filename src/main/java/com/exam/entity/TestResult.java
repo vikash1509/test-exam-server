@@ -16,12 +16,51 @@ public class TestResult {
     private Long id;
     private String submittedTime;
     private String name;
+    @Column(name = "user_id")
     private String userId;
-    private String marks;
+    private int marks;
     private String result;
     private String answerSheetLink;
+
+    @Column(name = "test_id")
     private Long testId;
+
+    public int getMarksDifference() {
+        return marksDifference;
+    }
+
+    public void setMarksDifference(int marksDifference) {
+        this.marksDifference = marksDifference;
+    }
+
+    @Column(name = "marks_difference")
+    private int marksDifference;
+
+    public Long getTestId() {
+        return testId;
+    }
+
+    public void setTestId(Long testId) {
+        this.testId = testId;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
+    @JoinColumn(name = "test_id", referencedColumnName = "test_id", insertable = false, updatable = false)
+    private TestLink testLink; // ManyToOne relationship with TestLink
+
+    @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    private User user; // ManyToOne relationship with TestLink
+
     private Date createDate;
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public Date getCreateDate() {
         return createDate;
@@ -31,11 +70,11 @@ public class TestResult {
         this.createDate = createDate;
     }
 
-    public String getMarks() {
+    public int getMarks() {
         return marks;
     }
 
-    public void setMarks(String marks) {
+    public void setMarks(int marks) {
         this.marks = marks;
     }
 
@@ -93,12 +132,12 @@ public class TestResult {
         this.answerSheetLink = answerSheetLink;
     }
 
-    public Long getTestId() {
-        return testId;
+    public TestLink getTestLink() {
+        return testLink;
     }
 
-    public void setTestId(Long testId) {
-        this.testId = testId;
+    public void setTestLink(TestLink testLink) {
+        this.testLink = testLink;
     }
 
     public String getStartTime() {

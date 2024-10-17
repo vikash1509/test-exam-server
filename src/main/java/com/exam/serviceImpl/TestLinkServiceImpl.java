@@ -1,25 +1,22 @@
 package com.exam.serviceImpl;
 
 import com.exam.entity.TestLink;
-import com.exam.entity.TestType;
-import com.exam.repository.testLinkRepository;
+import com.exam.repository.TestLinkRepository;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Service
 public class TestLinkServiceImpl {
 
     @Autowired
-    private testLinkRepository testInfoRepository;
+    private TestLinkRepository testInfoRepository;
 
 
     public TestLink createTest(TestLink testLink,String testType) {
         // Generate unique test ID
-        testLink.setTestId(UUID.randomUUID().toString());
         testLink.setCreateDate(new Date());
         testLink.setTestType(testType);
         // Assuming timeDuration is in minutes
