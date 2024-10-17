@@ -26,6 +26,17 @@ public class TestAttempt {
     @Column(name = "feedback")
     private String feedback;
 
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public void setAttemptCount(int attemptCount) {
+        this.attemptCount = attemptCount;
+    }
+
+    @Column(name = "attempt_count")
+    private int attemptCount = 1; // Default value 1
+
     // Getters and Setters
     public Long getId() {
         return id;
