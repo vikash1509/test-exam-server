@@ -22,4 +22,16 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // API Endpoint to trigger Selenium automation with a dynamic username
+    @GetMapping("/automate-quiz")
+    public String automateQuiz(@RequestParam String username,
+                               @RequestParam String userId,
+                               @RequestParam Long testId) {
+
+        // Call the automation method with the passed username
+      return  userService.automateQuizForm(username,userId,testId);
+
+    }
+
 }
