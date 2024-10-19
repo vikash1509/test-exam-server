@@ -9,11 +9,15 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Optional;
 
 import static io.github.bonigarcia.wdm.WebDriverManager.chromedriver;
@@ -53,7 +57,7 @@ public class UserServiceImpl {
         }
 
         // Initialize WebDriver
-        WebDriverManager.chromedriver(). setup();
+        WebDriverManager.chromedriver().setup();
         System.out.println("in-funtion---0");
 
         WebDriver driver = new ChromeDriver();
@@ -64,17 +68,26 @@ public class UserServiceImpl {
             System.out.println("in-funtion---2");
 
             // Find the name input field and fill it with the passed userName
-            WebElement userNameField = driver.findElement(By.id("input-Name")); // Replace with actual ID
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Wait for up to 10 seconds
+            WebElement userNameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("input-Name"))); // Replace with actual ID
             userNameField.sendKeys(userName);
-            WebElement userIdField = driver.findElement(By.id("input-userId")); // Replace with actual ID
+//            WebElement userNameField = driver.findElement(By.id("input-Name")); // Replace with actual ID
+//            userNameField.sendKeys(userName);
+            WebElement userIdField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("input-userId"))); // Replace with actual ID
             userIdField.sendKeys(userId);
+//            WebElement userIdField = driver.findElement(By.id("input-userId")); // Replace with actual ID
+//            userIdField.sendKeys(userId);
+            LocalDateTime currentDateTime = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            String dateTimeString = currentDateTime.format(formatter);
+            WebElement userStartTimeField = driver.findElement(By.id("input-startTime")); // Replace with actual ID
+            userStartTimeField.sendKeys(dateTimeString);
             System.out.println("in-funtion---3");
 
-            // Optionally, find the submit button and click it
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5000));
-            System.out.println("in-funtion---4");
 
-            WebElement submitButton = driver.findElement(By.id("Start Quiz")); // Replace with actual ID
+//            WebElement submitButton = driver.findElement(By.id("Start Quiz")); // Replace with actual ID
+//            submitButton.click();
+            WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("Start Quiz"))); // Replace with actual ID
             submitButton.click();
             System.out.println("in-funtion---5");
 
