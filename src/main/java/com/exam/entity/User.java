@@ -1,42 +1,51 @@
 package com.exam.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private String userId;
-
     @Column(name = "user_name")
     private String userName;
-
     @Column(name = "user_dob")
     private LocalDate userDOB;
-
     @Column(name = "user_city")
     private String userCity;
-
     @Column(name = "user_school_or_college")
     private String userSchoolOrCollege;
-
     @Column(name = "user_mob")
     private String userMob;
-
     @Column(name = "user_mail_id")
     private String userMailId;
-
     @Column(name = "user_password")
     private String userPassword;
-
     @Column(name = "user_rank")
     private int userRank;
 
+    public Set<UserRole> getUserRoles() {
+        return userRoles;
+    }
+
+    public void setUserRoles(Set<UserRole> userRoles) {
+        this.userRoles = userRoles;
+    }
+
     @Column(name = "user_rating")
     private int userRating = 1000;
+
+    //User have many roles
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,mappedBy = "user")
+    @JsonIgnore
+    private Set<UserRole> userRoles = new HashSet<>();
 
     public String getUserName() {
         return userName;

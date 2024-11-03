@@ -2,6 +2,8 @@ package com.exam.serviceImpl;
 
 import com.exam.entity.TestLink;
 import com.exam.entity.User;
+import com.exam.entity.UserRole;
+import com.exam.repository.RoleRepository;
 import com.exam.repository.TestLinkRepository;
 import com.exam.repository.UserRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -17,10 +19,9 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 
-import static io.github.bonigarcia.wdm.WebDriverManager.chromedriver;
 
 @Service
 public class UserServiceImpl {
@@ -28,14 +29,21 @@ public class UserServiceImpl {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
     private TestLinkRepository testLinkRepository;
 
-    public User createUser(User newUser) throws Exception {
+    public User createUser(User newUser , Set<UserRole> userRoles) throws Exception {
         // Check if the userId already exists
         Optional<User> existingUser = userRepository.findById(newUser.getUserId());
 
         if (existingUser.isPresent()) {
             throw new Exception("User with userId " + newUser.getUserId() + " already exists.");
+        }else{
+            for(UserRole ur:userRoles){
+                roleRepository.save(ur.getRole());
+            }
+            newUser.getUserRoles().addAll(userRoles);
         }
 
         // Set default user rating and rank

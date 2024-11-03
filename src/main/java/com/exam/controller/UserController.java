@@ -1,10 +1,15 @@
 package com.exam.controller;
 
+import com.exam.entity.Role;
 import com.exam.entity.User;
+import com.exam.entity.UserRole;
 import com.exam.serviceImpl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,7 +21,14 @@ public class UserController {
     @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
-            User createdUser = userService.createUser(user);
+            Set<UserRole> userRoles = new HashSet<>();
+            UserRole  userRole = new UserRole();
+            userRole.setRole(new Role(41L,"Normal"));
+            userRole.setUser(user);
+            userRoles.add(userRole);
+
+            User createdUser = userService.createUser(user,userRoles);
+
             return ResponseEntity.ok(createdUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

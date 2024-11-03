@@ -14,7 +14,6 @@ public class TestLinkServiceImpl {
     @Autowired
     private TestLinkRepository testInfoRepository;
 
-
     public TestLink createTest(TestLink testLink,String testType) {
         // Generate unique test ID
         testLink.setCreateDate(new Date());
@@ -23,7 +22,6 @@ public class TestLinkServiceImpl {
         if(StringUtils.isNotBlank(String.valueOf(testLink.getTimeDuration()))){
             testLink.setEndTime(testLink.getStartTime().plusMinutes(testLink.getTimeDuration()));
           }
-
         return testInfoRepository.save(testLink);
     }
 }
