@@ -46,4 +46,15 @@ public class UserController {
 
     }
 
+    @GetMapping("/login_user")
+    public ResponseEntity<?> loginUser(@RequestParam String userNameOrEmail,
+                               @RequestParam String userPass ) {
+        try{
+            return ResponseEntity.ok(userService.loginUser(userNameOrEmail,userPass));
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

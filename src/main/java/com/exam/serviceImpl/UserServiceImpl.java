@@ -53,6 +53,25 @@ public class UserServiceImpl {
         return userRepository.save(newUser);
     }
 
+    public User loginUser(String nameOrEmail, String userPassword) throws Exception {
+        // Find user by username or email
+        Optional<User> optionalUser = userRepository.findByUsernameOrEmail(nameOrEmail, nameOrEmail);
+
+        if (!optionalUser.isPresent()) {
+            throw new Exception("User not found with provided username or email.");
+        }
+
+        User user = optionalUser.get();
+
+        // Validate password
+        if (!user.getUserPassword().equals(userPassword)) {
+            throw new Exception("Invalid password. Please try again.");
+        }
+
+        // If password matches, return the user
+        return user;
+    }
+
     public String automateQuizForm(String userName,String userId,Long testId) {
 
         Optional<TestLink> testLink = testLinkRepository.findById(testId);

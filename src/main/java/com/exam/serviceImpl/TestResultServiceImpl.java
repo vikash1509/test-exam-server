@@ -108,6 +108,7 @@ public class TestResultServiceImpl {
     }
 
     public List<TestResult> getTestResultsByUserId(String userId) {
+        System.out.println(userId);
         return testResultRepository.findByUserId(userId);
     }
 
