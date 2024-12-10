@@ -1,5 +1,6 @@
 package com.exam.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,10 +47,12 @@ public class TestResult {
 
     @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
     @JoinColumn(name = "test_id", referencedColumnName = "test_id", insertable = false, updatable = false)
+    @JsonIgnore
     private TestLink testLink; // ManyToOne relationship with TestLink
 
     @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
     private User user; // ManyToOne relationship with TestLink
 
     private Date createDate;
@@ -164,8 +167,4 @@ public class TestResult {
         this.rank = rank;
     }
 
-
-
-
-    // Additional fields and methods as needed
 }

@@ -85,7 +85,7 @@ public class TestResultController {
         }
     }
 
-    @GetMapping("/publishTestResult")
+    @GetMapping("/showTestResult")
     public ResponseEntity<List<TestResult>> publishTestResults(
             @RequestParam("testId") Long testId) {
         try {

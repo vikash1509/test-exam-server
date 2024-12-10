@@ -3,6 +3,7 @@ package com.exam.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,6 +31,29 @@ public class User {
     private String userPassword;
     @Column(name = "user_rank")
     private int userRank;
+    
+    private String otp; // Store OTP temporarily
+
+    private LocalDateTime otpExpiry; // Expiry time for OTP
+
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    public LocalDateTime getOtpExpiry() {
+        return otpExpiry;
+    }
+
+    public void setOtpExpiry(LocalDateTime otpExpiry) {
+        this.otpExpiry = otpExpiry;
+    }
+
+
 
     public Set<UserRole> getUserRoles() {
         return userRoles;

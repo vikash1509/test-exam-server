@@ -16,6 +16,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,6 +33,8 @@ public class UserServiceImpl {
     private RoleRepository roleRepository;
     @Autowired
     private TestLinkRepository testLinkRepository;
+    @Autowired
+    private EmailServiceImpl emailService;
 
     public User createUser(User newUser , Set<UserRole> userRoles) throws Exception {
         // Check if the userId already exists
@@ -124,5 +127,50 @@ public class UserServiceImpl {
             return "test link is not found  ";
         }
         return "test is successfully automated : ";
+    }
+
+
+    private final SecureRandom random = new SecureRandom();
+
+    public void generateAndSendOtp(String email) {
+        User user = userRepository.findByUserMailId(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String otp = String.format("%05d", random.nextInt(100000));
+        user.setOtp(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5)); // OTP valid for 5 minutes
+        userRepository.save(user);
+
+        emailService.sendEmail(email, "Your OTP Code", "Your OTP is: " + otp);
+    }
+
+    public void verifyOtp(String email, String otp) {
+        User user = userRepository.findByUserMailId(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getOtp() == null || user.getOtpExpiry() == null ||
+                user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("OTP is expired or invalid.");
+        }
+
+        if (!user.getOtp().equals(otp)) {
+            throw new IllegalArgumentException("Incorrect OTP.");
+        }
+
+        user.setOtp(null); // Clear OTP after successful verification
+        user.setOtpExpiry(null);
+        userRepository.save(user);
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepository.findByUserMailId(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getUserPassword().equals(newPassword)) {
+            throw new IllegalArgumentException("New password cannot be the same as the old password.");
+        }
+
+        user.setUserPassword(newPassword); // Use a secure hashing algorithm in production
+        userRepository.save(user);
     }
 }
