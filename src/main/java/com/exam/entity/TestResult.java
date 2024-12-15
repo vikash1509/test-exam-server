@@ -45,12 +45,12 @@ public class TestResult {
         this.testId = testId;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Lazy fetching to load the test details only when needed
     @JoinColumn(name = "test_id", referencedColumnName = "test_id", insertable = false, updatable = false)
     @JsonIgnore
     private TestLink testLink; // ManyToOne relationship with TestLink
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching to load the test details only when needed
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)  // Lazy fetching to load the test details only when needed
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     @JsonIgnore
     private User user; // ManyToOne relationship with TestLink
