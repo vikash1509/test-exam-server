@@ -24,8 +24,8 @@ public class TestLinkController {
         return ResponseEntity.badRequest().body(null);
     }
 
-    @PutMapping("/{testId}/hide-test-info")
-    public String updateHideTestInfo(@PathVariable Long testId, @RequestParam boolean hideTestInfo) {
+    @PutMapping("/hide-test-info")
+    public String updateHideTestInfo(@RequestParam Long testId, @RequestParam boolean hideTestInfo) {
         boolean isUpdated = testInfoService.updateHideTestInfo(testId, hideTestInfo);
         return isUpdated ? "Update successful" : "Update failed";
     }
@@ -34,11 +34,25 @@ public class TestLinkController {
         return testInfoService.getTestLink("RankBooster");
     }
 
-    @GetMapping("/showPracticeTests")
+    @GetMapping("/showPracticeTest")
     public List<TestLink> showPracticeTest() {
         return testInfoService.getTestLink("Practice");
     }
 
+    @GetMapping("/showAllLiveTest")
+    public List<TestLink> showAllLiveTest() {
+        return testInfoService.getAllTestLink("RankBooster");
+    }
 
+    @GetMapping("/showAllPracticeTest")
+    public List<TestLink> showAllPracticeTest() {
+        return testInfoService.getAllTestLink("Practice");
+    }
+
+    @PutMapping("/publish_result")
+    public String publishResult(@RequestParam Long testId, @RequestParam boolean resultPublish) {
+        boolean isUpdated = testInfoService.publishResult(testId, resultPublish);
+        return isUpdated ? "Update successful" : "Update failed";
+    }
 }
 

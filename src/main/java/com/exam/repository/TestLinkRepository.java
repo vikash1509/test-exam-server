@@ -23,5 +23,10 @@ public interface TestLinkRepository extends JpaRepository<TestLink, Long> {
     @Query("UPDATE TestLink t SET t.hideTestInfo = :hideTestInfo WHERE t.id = :testId")
     int updateHideTestInfoByTestId(@Param("testId") Long testId, @Param("hideTestInfo") boolean hideTestInfo);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE TestLink t SET t.resultPublish = :resultPublish WHERE t.id = :testId")
+    int updateResultPublishByTestId(@Param("testId") Long testId, @Param("resultPublish") boolean hideTestInfo);
+
 }
 

@@ -12,7 +12,7 @@ import java.util.Set;
 public class User {
 
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//  @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private String userId;
     @Column(name = "user_name")
@@ -31,7 +31,7 @@ public class User {
     private String userPassword;
     @Column(name = "user_rank")
     private int userRank;
-    
+
     private String otp; // Store OTP temporarily
 
     private LocalDateTime otpExpiry; // Expiry time for OTP

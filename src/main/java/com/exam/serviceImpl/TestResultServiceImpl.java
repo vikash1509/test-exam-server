@@ -112,7 +112,13 @@ public class TestResultServiceImpl {
         return testResultRepository.findByUserId(userId);
     }
 
-    public List<TestResult> getTestResultsByTestId(Long testId) {
+    public List<TestResult> getTestResultsByTestId(Long testId) throws Exception {
+        TestLink testLink = testLinkRepository.findById(testId)
+                .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
+        System.out.println("testLink available" + testLink);
+        if(!testLink.isResultPublish()){
+            throw new Exception("Result not published yet for Test ID: " + testId);
+        }
         return testResultRepository.findByTestId(testId);
     }
 

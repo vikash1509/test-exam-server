@@ -75,4 +75,14 @@ public class UserController {
         return ResponseEntity.ok("Password updated successfully.");
     }
 
+    @GetMapping("/get-user")
+    public ResponseEntity<?> getUser(@RequestParam String userId) {
+        try{
+            return ResponseEntity.ok(userService.getUser(userId));
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

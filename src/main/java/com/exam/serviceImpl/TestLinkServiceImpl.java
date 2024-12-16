@@ -48,8 +48,17 @@ public class TestLinkServiceImpl {
         return testInfoRepository.findTestIdsByTestTypeAndHideTestInfoFalse(testType);
     }
 
+    public List<TestLink> getAllTestLink(String testType){
+        return testInfoRepository.findBytestType(testType);
+    }
+
     public boolean updateHideTestInfo(Long testId, boolean hideTestInfo) {
         int rowsUpdated = testInfoRepository.updateHideTestInfoByTestId(testId, hideTestInfo);
+        return rowsUpdated > 0; // Return true if at least one row was updated
+    }
+
+    public boolean publishResult(Long testId, boolean resultPublish) {
+        int rowsUpdated = testInfoRepository.updateResultPublishByTestId(testId, resultPublish);
         return rowsUpdated > 0; // Return true if at least one row was updated
     }
 

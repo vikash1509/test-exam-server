@@ -15,7 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/test-results")
@@ -80,13 +82,13 @@ public class TestResultController {
             }
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-
+            System.out.println(e.toString());
             return ResponseEntity.status(500).body(null);
         }
     }
 
     @GetMapping("/showTestResult")
-    public ResponseEntity<List<TestResult>> publishTestResults(
+    public ResponseEntity<?> publishTestResults(
             @RequestParam("testId") Long testId) {
         try {
             List<TestResult> results = testResultService.getTestResultsByTestId(testId);
@@ -95,8 +97,13 @@ public class TestResultController {
             }
             return ResponseEntity.ok(results);
         } catch (Exception e) {
+            System.out.println(e.toString());
 
-            return ResponseEntity.status(500).body(null);
+            // Create a response with exception details
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "An error occurred while fetching user results.");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 

@@ -55,6 +55,12 @@ public class UserServiceImpl {
 
         return userRepository.save(newUser);
     }
+    
+    public Optional<User> getUser (String userId){
+        Optional<User> existingUser = userRepository.findById(userId);
+        System.out.println(existingUser);
+        return existingUser;
+    }
 
     public User loginUser(String nameOrEmail, String userPassword) throws Exception {
         // Find user by username or email
@@ -63,7 +69,7 @@ public class UserServiceImpl {
         if (!optionalUser.isPresent()) {
             throw new Exception("User not found with provided username or email.");
         }
-
+ 
         User user = optionalUser.get();
 
         // Validate password
