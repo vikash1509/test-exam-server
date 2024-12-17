@@ -43,15 +43,15 @@ public class TestLink {
     private String testCategory;
     private boolean resultPublish = false;
 
-    public boolean isResultfileUploaded() {
-        return resultfileUploaded;
+    public boolean isResultFileUploaded() {
+        return resultFileUploaded;
     }
 
-    public void setResultfileUploaded(boolean resultfileUploaded) {
-        this.resultfileUploaded = resultfileUploaded;
+    public void setResultFileUploaded(boolean resultFileUploaded) {
+        this.resultFileUploaded = resultFileUploaded;
     }
 
-    private boolean resultfileUploaded = false;
+    private boolean resultFileUploaded = false;
     @Column(name = "hide_test_info", nullable = false)
     private boolean hideTestInfo = false; // by default it is published after creation
     public String getTestCategory() {

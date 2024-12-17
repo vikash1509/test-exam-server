@@ -88,10 +88,30 @@ public class TestResultController {
     }
 
     @GetMapping("/showTestResult")
-    public ResponseEntity<?> publishTestResults(
+    public ResponseEntity<?> showTestResult(
             @RequestParam("testId") Long testId) {
         try {
-            List<TestResult> results = testResultService.getTestResultsByTestId(testId);
+            List<TestResult> results = testResultService.getTestResultsByTestId(testId,false);
+            if (results.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+
+            // Create a response with exception details
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "An error occurred while fetching user results.");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/showTestResultFromDb")
+    public ResponseEntity<?> showTestResultFromDb(
+            @RequestParam("testId") Long testId) {
+        try {
+            List<TestResult> results = testResultService.getTestResultsByTestId(testId,true);
             if (results.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -116,7 +136,4 @@ public class TestResultController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
-
-
-
 }

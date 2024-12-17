@@ -44,6 +44,7 @@ public class TestResultServiceImpl {
 
         return saveTestResults(file,testId,startTime);
     }
+    @Transactional
     public List<TestResult> saveTestResults(MultipartFile file, Long testId, String startTime) throws Exception {
         CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()));
         List<TestResult> testResults = csvReader.readAll().stream()
@@ -75,6 +76,8 @@ public class TestResultServiceImpl {
         TestLink testLink = testLinkRepository.findById(testId)
                 .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
         double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
+        int rowsUpdted = testLinkRepository.updateResultFileUplodedByTestId(testId,true);
+        System.out.println("rows updated In TestReslutServiceImpl : " +rowsUpdted );
 
         // Calculate the average marks of all students
         int avgMarks = (int) testResults.stream()
@@ -112,10 +115,13 @@ public class TestResultServiceImpl {
         return testResultRepository.findByUserId(userId);
     }
 
-    public List<TestResult> getTestResultsByTestId(Long testId) throws Exception {
+    public List<TestResult> getTestResultsByTestId(Long testId,boolean forAdmin) throws Exception {
         TestLink testLink = testLinkRepository.findById(testId)
                 .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
         System.out.println("testLink available" + testLink);
+        if(forAdmin){
+            return testResultRepository.findByTestId(testId);
+        }
         if(!testLink.isResultPublish()){
             throw new Exception("Result not published yet for Test ID: " + testId);
         }
