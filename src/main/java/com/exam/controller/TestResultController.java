@@ -31,11 +31,10 @@ public class TestResultController {
     @PostMapping("/upload")
     public ResponseEntity<InputStreamResource> uploadTestResults(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("testId") Long testId,
-            @RequestParam("startTime") String startTime) {
+            @RequestParam("testId") Long testId) {
 
         try {
-            List<TestResult> results = testResultService.saveTestResults(file, testId, startTime);
+            List<TestResult> results = testResultService.saveTestResults(file, testId);
             // Path to the generated CSV file
             File csvFile = testResultService.getOutputCSVFile();
 
@@ -59,12 +58,11 @@ public class TestResultController {
     @PostMapping("/upload-updated")
     public ResponseEntity<List<TestResult>> uploadUpdatedTestResults(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("testId") Long testId,
-            @RequestParam("startTime") String startTime) {
+            @RequestParam("testId") Long testId) {
 
         try {
             // Call service to delete old results and save new ones
-            List<TestResult> results = testResultService.saveUpdatedTestResults(file, testId, startTime);
+            List<TestResult> results = testResultService.saveUpdatedTestResults(file, testId);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             System.out.println(e.toString());
