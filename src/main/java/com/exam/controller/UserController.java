@@ -4,6 +4,8 @@ import com.exam.entity.Role;
 import com.exam.entity.User;
 import com.exam.entity.UserRole;
 import com.exam.serviceImpl.UserServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,8 @@ public class UserController {
     @Autowired
     private UserServiceImpl userService;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
@@ -28,12 +32,15 @@ public class UserController {
             userRoles.add(userRole);
 
             User createdUser = userService.createUser(user,userRoles);
+            logger.info("User created successfully: {}", createdUser.getUserName());
 
             return ResponseEntity.ok(createdUser);
         } catch (Exception e) {
+            logger.error("Error while creating user: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     // API Endpoint to trigger Selenium automation with a dynamic username
     @GetMapping("/automate-quiz")
