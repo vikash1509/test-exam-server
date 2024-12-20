@@ -1,6 +1,6 @@
-package com.exam.entity
+package com.exam.entity;
 
-enum class TestType {
+public enum  TestType {
     PRACTICE,
     MOCK,
     FINAL,

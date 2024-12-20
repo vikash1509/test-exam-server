@@ -1,7 +1,6 @@
 package com.exam.controller;
 
 import com.exam.entity.TestLink;
-import com.exam.entity.TestType;
 import com.exam.serviceImpl.TestLinkServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
