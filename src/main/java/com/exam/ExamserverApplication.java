@@ -22,7 +22,8 @@ import org.slf4j.LoggerFactory;
 			@Bean
 			public CorsFilter corsFilter() {
 				CorsConfiguration config = new CorsConfiguration();
-				config.addAllowedOrigin("http://localhost:3000"); // React App URL
+				config.addAllowedOrigin("http://localhost:3000");// React App URL
+				config.addAllowedOrigin("https://17st.github.io/");
 				config.addAllowedHeader("*"); // Allow all headers
 				config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
 				config.setAllowCredentials(true); // If you use cookies or authentication

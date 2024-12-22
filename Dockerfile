@@ -1,5 +1,5 @@
 # Use an OpenJDK base image with a slim version of JRE (Java Runtime Environment)
-FROM openjdk:11-jre-slim
+FROM openjdk:21-jdk-slim
 
 # Set the working directory inside the container
 WORKDIR /app
