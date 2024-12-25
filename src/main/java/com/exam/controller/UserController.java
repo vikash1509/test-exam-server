@@ -24,19 +24,24 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody User user) {
+        long startTime = System.currentTimeMillis(); // Start time measurement
         try {
             Set<UserRole> userRoles = new HashSet<>();
-            UserRole  userRole = new UserRole();
-            userRole.setRole(new Role(41L,"Normal"));
-            userRole.setUser(user);
-            userRoles.add(userRole);
-
+//            UserRole  userRole = new UserRole();
+//            userRole.setRole(new Role(41L,"Normal"));
+//            userRole.setUser(user);
+//            userRoles.add(userRole);
             User createdUser = userService.createUser(user,userRoles);
             logger.info("User created successfully: {}", createdUser.getUserName());
 
+            long endTime = System.currentTimeMillis(); // End time measurement
+            logger.info("createUser API executed in {} ms", (endTime - startTime)); // Log execution time
+
             return ResponseEntity.ok(createdUser);
         } catch (Exception e) {
-            logger.error("Error while creating user: {}", e.getMessage(), e);
+            long endTime = System.currentTimeMillis(); // End time measurement for error case
+            logger.error("Error while creating user: {}. API executed in {} ms", e.getMessage(), (endTime - startTime));
+
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

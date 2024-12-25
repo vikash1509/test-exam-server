@@ -1,8 +1,10 @@
 package com.exam.serviceImpl;
 
+import com.exam.controller.UserController;
 import com.exam.entity.TestLink;
 import com.exam.entity.User;
 import com.exam.entity.UserRole;
+import com.exam.entity.UserType;
 import com.exam.repository.RoleRepository;
 import com.exam.repository.TestLinkRepository;
 import com.exam.repository.UserRepository;
@@ -13,6 +15,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +24,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -36,47 +39,102 @@ public class UserServiceImpl {
     @Autowired
     private EmailServiceImpl emailService;
 
-    public User createUser(User newUser , Set<UserRole> userRoles) throws Exception {
-        // Check if the userId already exists
-        Optional<User> existingUser = userRepository.findById(newUser.getUserId());
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-        if (existingUser.isPresent()) {
-            throw new Exception("User with userId " + newUser.getUserId() + " already exists.");
-        }else{
-            for(UserRole ur:userRoles){
-                roleRepository.save(ur.getRole());
-            }
-            newUser.getUserRoles().addAll(userRoles);
+    public User createUser(User newUser, Set<UserRole> userRoles) throws Exception {
+        long startTime = System.currentTimeMillis(); // Start time
+
+        logger.info("Starting createUser method");
+        String emailId = newUser.getUserMailId();
+        if (emailId == null || !emailId.contains("@")) {
+            throw new IllegalArgumentException("Invalid email ID");
         }
+        checkTypeOfUser(newUser);
+        newUser.setUserName(emailId.substring(0, emailId.indexOf("@")));
+
+        // Check if the userMailId already exists
+        Optional<User> existingUser = userRepository.findByUserMailId(newUser.getUserMailId());
+        if (existingUser.isPresent()) {
+            throw new Exception("User with the same email already exists.");
+        }
+
+        // Generate unique userId
+        String userId;
+        do {
+            userId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+            logger.info("Generated user ID: {}", userId);
+        } while (userRepository.findByUserId(userId).isPresent());
+        newUser.setUserId(userId);
+
+        // Generate unique rollNo as a 7-digit random number with prefix MP
+        String rollNo;
+        do {
+            rollNo = "MP" + String.format("%07d", new Random().nextInt(10000000));
+            logger.info("Generated roll number: {}", rollNo);
+        } while (userRepository.findByUserRollNo(rollNo).isPresent());
+        newUser.setUserRollNo(rollNo);
+
+        // Save roles
+        for (UserRole ur : userRoles) {
+            roleRepository.save(ur.getRole());
+        }
+        newUser.getUserRoles().addAll(userRoles);
 
         // Set default user rating and rank
         newUser.setUserRating(1000); // Default rating
         newUser.setUserRank(0);      // Default rank can be 0
+        newUser.setCreateDate(new Date());
+        newUser.setUserLastLogin(LocalDateTime.now());
+
+        long endTime = System.currentTimeMillis(); // End time
+        logger.info("createUser method completed in {} ms", (endTime - startTime)); // Log time taken
 
         return userRepository.save(newUser);
     }
-    
+
     public Optional<User> getUser (String userId){
-        Optional<User> existingUser = userRepository.findById(userId);
+        Optional<User> existingUser = userRepository.findByUserId(userId);
         System.out.println(existingUser);
         return existingUser;
     }
 
-    public User loginUser(String nameOrEmail, String userPassword) throws Exception {
-        // Find user by username or email
-        Optional<User> optionalUser = userRepository.findByUsernameOrEmail(nameOrEmail, nameOrEmail);
+    private void checkTypeOfUser(User user) throws Exception {
+        String userType = user.getUserType().toUpperCase();
 
-        if (!optionalUser.isPresent()) {
-            throw new Exception("User not found with provided username or email.");
+        switch (userType) {
+            case "SCHOOLSTUDENT":
+                user.setUserType(UserType.SCHOOLSTUDENT.name());
+                break;
+            case "COLLEGESTUDENT":
+                user.setUserType(UserType.COLLEGESTUDENT.name());
+                break;
+            case "SCHOOLTEACHER":
+                user.setUserType(UserType.SCHOOLTEACHER.name());
+                break;
+            case "COLLEGETEACHER":
+                user.setUserType(UserType.COLLEGETEACHER.name());
+                break;
+            default:
+                throw new Exception("User is not available for this type");
         }
- 
+    }
+
+
+    public User loginUser(String email, String userPassword) throws Exception {
+        // Find user by username or email
+        Optional<User> optionalUser = userRepository.findByUserMailId(email);
+
+        if (optionalUser.isEmpty()) {
+            throw new Exception("User not found with provided email.");
+        }
+
         User user = optionalUser.get();
 
         // Validate password
         if (!user.getUserPassword().equals(userPassword)) {
             throw new Exception("Invalid password. Please try again.");
         }
-
+        userRepository.updateUserLastLogin(user.getUserId(),LocalDateTime.now());
         // If password matches, return the user
         return user;
     }

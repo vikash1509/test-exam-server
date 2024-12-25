@@ -18,7 +18,8 @@ import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/api/test-results")
 @RequiredArgsConstructor
@@ -28,17 +29,18 @@ public class TestResultController {
     private  TestResultServiceImpl testResultService;
 
 
+    private static final Logger logger = LoggerFactory.getLogger(TestResultController.class);
+
     @PostMapping("/upload")
     public ResponseEntity<InputStreamResource> uploadTestResults(
             @RequestParam("file") MultipartFile file,
             @RequestParam("testId") Long testId) {
 
+        long startTime = System.currentTimeMillis();
         try {
             List<TestResult> results = testResultService.saveTestResults(file, testId);
-            // Path to the generated CSV file
             File csvFile = testResultService.getOutputCSVFile();
 
-            // Prepare response to return the CSV file
             InputStreamResource resource = new InputStreamResource(new FileInputStream(csvFile));
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + csvFile.getName());
@@ -49,30 +51,37 @@ public class TestResultController {
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         } catch (Exception e) {
-            System.out.println(e.toString());
+            logger.error("Error in uploadTestResults: {}", e.getMessage());
             return ResponseEntity.status(500).body(null);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for uploadTestResults: {} ms", (endTime - startTime));
         }
     }
-
 
     @PostMapping("/upload-updated")
     public ResponseEntity<List<TestResult>> uploadUpdatedTestResults(
             @RequestParam("file") MultipartFile file,
             @RequestParam("testId") Long testId) {
 
+        long startTime = System.currentTimeMillis();
         try {
-            // Call service to delete old results and save new ones
             List<TestResult> results = testResultService.saveUpdatedTestResults(file, testId);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            System.out.println(e.toString());
+            logger.error("Error in uploadUpdatedTestResults: {}", e.getMessage());
             return ResponseEntity.status(500).body(null);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for uploadUpdatedTestResults: {} ms", (endTime - startTime));
         }
     }
 
     @GetMapping("/userResult")
     public ResponseEntity<List<TestResult>> getUserResults(
             @RequestParam("userId") String userId) {
+
+        long startTime = System.currentTimeMillis();
         try {
             List<TestResult> results = testResultService.getTestResultsByUserId(userId);
             if (results.isEmpty()) {
@@ -80,58 +89,73 @@ public class TestResultController {
             }
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            System.out.println(e.toString());
+            logger.error("Error in getUserResults: {}", e.getMessage());
             return ResponseEntity.status(500).body(null);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for getUserResults: {} ms", (endTime - startTime));
         }
     }
 
     @GetMapping("/showTestResult")
     public ResponseEntity<?> showTestResult(
             @RequestParam("testId") Long testId) {
+
+        long startTime = System.currentTimeMillis();
         try {
-            List<TestResult> results = testResultService.getTestResultsByTestId(testId,false);
+            List<TestResult> results = testResultService.getTestResultsByTestId(testId, false);
             if (results.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            System.out.println(e.toString());
-
-            // Create a response with exception details
+            logger.error("Error in showTestResult: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "An error occurred while fetching user results.");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for showTestResult: {} ms", (endTime - startTime));
         }
     }
 
     @GetMapping("/showTestResultFromDb")
     public ResponseEntity<?> showTestResultFromDb(
             @RequestParam("testId") Long testId) {
+
+        long startTime = System.currentTimeMillis();
         try {
-            List<TestResult> results = testResultService.getTestResultsByTestId(testId,true);
+            List<TestResult> results = testResultService.getTestResultsByTestId(testId, true);
             if (results.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            System.out.println(e.toString());
-
-            // Create a response with exception details
+            logger.error("Error in showTestResultFromDb: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "An error occurred while fetching user results.");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for showTestResultFromDb: {} ms", (endTime - startTime));
         }
     }
 
     @PostMapping("/updateUserRatings/{testId}")
     public ResponseEntity<String> updateUserRatings(@PathVariable Long testId) {
+
+        long startTime = System.currentTimeMillis();
         try {
             testResultService.updateUserRatings(testId);
             return ResponseEntity.ok("User ratings updated successfully!");
         } catch (Exception e) {
+            logger.error("Error in updateUserRatings: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        } finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("Execution time for updateUserRatings: {} ms", (endTime - startTime));
         }
     }
 }

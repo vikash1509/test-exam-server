@@ -174,7 +174,7 @@ public class TestResultServiceImpl {
             int marksDifference = result.getMarksDifference();
 
             // Fetch the user entity by userId
-            Optional<User> optionalUser = userRepository.findById(userId);
+            Optional<User> optionalUser = userRepository.findByUserId(userId);
             if (optionalUser.isPresent()) {
                 System.out.println("in ---- updateUserRatings");
 
