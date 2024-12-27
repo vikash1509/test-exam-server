@@ -9,9 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface TestLinkRepository extends JpaRepository<TestLink, Long> {
-    Optional<TestLink> findById(Long testId);
+public interface TestLinkRepository extends JpaRepository<TestLink, String> {
+    Optional<TestLink> findById(String testId);
 
     List<TestLink> findBytestType(String testType);
 
@@ -21,18 +22,18 @@ public interface TestLinkRepository extends JpaRepository<TestLink, Long> {
     @Modifying
     @Transactional
     @Query("UPDATE TestLink t SET t.hideTestInfo = :hideTestInfo WHERE t.id = :testId")
-    int updateHideTestInfoByTestId(@Param("testId") Long testId, @Param("hideTestInfo") boolean hideTestInfo);
+    int updateHideTestInfoByTestId(@Param("testId") String testId, @Param("hideTestInfo") boolean hideTestInfo);
 
     @Modifying
     @Transactional
     @Query("UPDATE TestLink t SET t.resultFileUploaded = :resultFileUploaded WHERE t.id = :testId")
-    int updateResultFileUplodedByTestId(@Param("testId") Long testId, @Param("resultFileUploaded") boolean resultFileUploaded);
+    int updateResultFileUplodedByTestId(@Param("testId") String testId, @Param("resultFileUploaded") boolean resultFileUploaded);
 
 
     @Modifying
     @Transactional
     @Query("UPDATE TestLink t SET t.resultPublish = :resultPublish WHERE t.id = :testId")
-    int updateResultPublishByTestId(@Param("testId") Long testId, @Param("resultPublish") boolean hideTestInfo);
+    int updateResultPublishByTestId(@Param("testId") String testId, @Param("resultPublish") boolean hideTestInfo);
 
 }
 

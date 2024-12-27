@@ -114,6 +114,9 @@ public class UserServiceImpl {
             case "COLLEGETEACHER":
                 user.setUserType(UserType.COLLEGETEACHER.name());
                 break;
+            case "ADMIN":    // added only for production
+                user.setUserType("ADMIN");
+                break;
             default:
                 throw new Exception("User is not available for this type");
         }
@@ -139,7 +142,7 @@ public class UserServiceImpl {
         return user;
     }
 
-    public String automateQuizForm(String userName,String userId,Long testId) {
+    public String automateQuizForm(String userName,String userId,String testId) {
 
         Optional<TestLink> testLink = testLinkRepository.findById(testId);
         String testUrl = null;

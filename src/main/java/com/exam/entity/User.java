@@ -41,6 +41,7 @@ public class User {
     private int userRank;
     @Column(name = "user_rating")
     private int userRating = 1000;
+    private String userOrganisation;
     private Date createDate;
     private LocalDateTime userLastLogin;
     private String otp; // Store OTP temporarily
@@ -169,5 +170,11 @@ public class User {
     }
     public void setActive(boolean active) {
         isActive = active;
+    }
+    public String getUserOrganisation() {
+        return userOrganisation;
+    }
+    public void setUserOrganisation(String userOrganisation) {
+        this.userOrganisation = userOrganisation;
     }
 }

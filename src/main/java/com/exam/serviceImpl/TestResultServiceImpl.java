@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.sql.SQLOutput;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,14 +39,14 @@ public class TestResultServiceImpl {
      * Delete old test results by testId and save the updated ones.
      */
     @Transactional // Ensure this method runs in a transactional context
-    public List<TestResult> saveUpdatedTestResults(MultipartFile file, Long testId) throws Exception {
+    public List<TestResult> saveUpdatedTestResults(MultipartFile file, String testId) throws Exception {
 
         testResultRepository.deleteByTestId(testId);
 
         return saveTestResults(file,testId);
     }
     @Transactional
-    public List<TestResult> saveTestResults(MultipartFile file, Long testId) throws Exception {
+    public List<TestResult> saveTestResults(MultipartFile file, String testId) throws Exception {
         CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()));
         TestLink testLink = testLinkRepository.findById(testId)
                 .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
@@ -58,33 +59,38 @@ public class TestResultServiceImpl {
             List<TestResult> testResults = csvReader.readAll().stream()
                     .skip(1) // Skip the header row
                     .map(data -> {
+                        Optional<User> user = userRepository.findByUserRollNo(data[3]);
                         TestResult testResult = new TestResult();
-                        testResult.setSubmittedTime(data[1]);
-                        testResult.setName(data[2]);
-                        testResult.setUserId(data[3]);
-                        testResult.setMarks(Integer.parseInt(data[4]));
-                        testResult.setResult(data[5]);
-                        testResult.setAnswerSheetLink(data[data.length - 1]);
-                        testResult.setTestId(testId);
+                       if(user.isPresent()){
+                           testResult.setSubmittedTime(data[1]);
+                           testResult.setName(data[2]);
+                           testResult.setUserRollNo(data[3]);
+                           testResult.setMarks(Integer.parseInt(data[4]));
+                           testResult.setResult(data[5]);
+                           testResult.setAnswerSheetLink(data[data.length - 1]);
+                           testResult.setTestId(testId);
+                           testResult.setUserEmail(user.get().getUserMailId());
 
-                        System.out.println(startTime);
-                        System.out.println(testResult.getSubmittedTime());
-                        if(isLiveTest){
-                            LocalDateTime submitTime = LocalDateTime.parse(testResult.getSubmittedTime(), formatter2);
-                            long timeDuration = Duration.between(startTime, submitTime).toMinutes();// Implement this method
-                            testResult.setTimeDuration(timeDuration);
-                        }else{
-                            testResult.setTimeDuration(0L);
-                        }
-                        testResult.setCreateDate(new Date());
+                           System.out.println(startTime);
+                           System.out.println(testResult.getSubmittedTime());
+                           if(isLiveTest){
+                               LocalDateTime submitTime = LocalDateTime.parse(testResult.getSubmittedTime(), formatter2);
+                               long timeDuration = Duration.between(startTime, submitTime).toMinutes();// Implement this method
+                               testResult.setTimeDuration(timeDuration);
+                           }else{
+                               testResult.setTimeDuration(0L);
+                           }
+                       }
                         return testResult;
                     })
                     .collect(Collectors.toList());
 
+            System.out.println(testResults.size());
             // Calculate rank based on minimum timeDuration and maximum score (assuming result is the score)
             testResults = calculateRank(testResults);
-            createOutputCSV(testResults);
-
+              //Need analysis
+//            createOutputCSV(testResults);
+            System.out.println(testResults.size());
             // Calculate the total marks from TestLink entity using testId
             double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
             int rowsUpdted = testLinkRepository.updateResultFileUplodedByTestId(testId, true);
@@ -104,6 +110,9 @@ public class TestResultServiceImpl {
 
             // Save to database
             return testResultRepository.saveAll(testResults);
+
+            // Enhancement add resultuploadTime in to testLink
+
         }catch (Exception e) {
             throw new IllegalArgumentException("Invalid time format: " + e.getMessage());
         }
@@ -112,6 +121,11 @@ public class TestResultServiceImpl {
 
 
     private List<TestResult> calculateRank(List<TestResult> testResults) {
+        for (int i = 0; i < testResults.size(); i++) {
+            System.out.println(testResults.get(i).getUserRollNo());
+            System.out.println(testResults.get(i).getUserEmail());
+
+        }
         testResults.sort(Comparator.comparing(TestResult::getTimeDuration)
                 .thenComparing(Comparator.comparing(TestResult::getMarks).reversed()));
 
@@ -126,7 +140,7 @@ public class TestResultServiceImpl {
         return testResultRepository.findByUserId(userId);
     }
 
-    public List<TestResult> getTestResultsByTestId(Long testId,boolean forAdmin) throws Exception {
+    public List<TestResult> getTestResultsByTestId(String testId,boolean forAdmin) throws Exception {
         TestLink testLink = testLinkRepository.findById(testId)
                 .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
         System.out.println("testLink available" + testLink);
@@ -164,7 +178,7 @@ public class TestResultServiceImpl {
 
 
     @Transactional
-    public void updateUserRatings(Long testId) {
+    public void updateUserRatings(String testId) {
         // Fetch test results for the given testId
         List<TestResult> testResults = testResultRepository.findByTestId(testId);
 

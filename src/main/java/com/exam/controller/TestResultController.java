@@ -32,9 +32,9 @@ public class TestResultController {
     private static final Logger logger = LoggerFactory.getLogger(TestResultController.class);
 
     @PostMapping("/upload")
-    public ResponseEntity<InputStreamResource> uploadTestResults(
+    public ResponseEntity<?> uploadTestResults(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("testId") Long testId) {
+            @RequestParam("testId") String testId) {
 
         long startTime = System.currentTimeMillis();
         try {
@@ -52,7 +52,7 @@ public class TestResultController {
                     .body(resource);
         } catch (Exception e) {
             logger.error("Error in uploadTestResults: {}", e.getMessage());
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).body(e.getMessage());
         } finally {
             long endTime = System.currentTimeMillis();
             logger.info("Execution time for uploadTestResults: {} ms", (endTime - startTime));
@@ -62,7 +62,7 @@ public class TestResultController {
     @PostMapping("/upload-updated")
     public ResponseEntity<List<TestResult>> uploadUpdatedTestResults(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("testId") Long testId) {
+            @RequestParam("testId") String testId) {
 
         long startTime = System.currentTimeMillis();
         try {
@@ -99,7 +99,7 @@ public class TestResultController {
 
     @GetMapping("/showTestResult")
     public ResponseEntity<?> showTestResult(
-            @RequestParam("testId") Long testId) {
+            @RequestParam("testId") String testId) {
 
         long startTime = System.currentTimeMillis();
         try {
@@ -122,7 +122,7 @@ public class TestResultController {
 
     @GetMapping("/showTestResultFromDb")
     public ResponseEntity<?> showTestResultFromDb(
-            @RequestParam("testId") Long testId) {
+            @RequestParam("testId") String testId) {
 
         long startTime = System.currentTimeMillis();
         try {
@@ -144,7 +144,7 @@ public class TestResultController {
     }
 
     @PostMapping("/updateUserRatings/{testId}")
-    public ResponseEntity<String> updateUserRatings(@PathVariable Long testId) {
+    public ResponseEntity<String> updateUserRatings(@PathVariable String testId) {
 
         long startTime = System.currentTimeMillis();
         try {

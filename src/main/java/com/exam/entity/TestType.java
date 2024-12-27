@@ -2,7 +2,7 @@ package com.exam.entity;
 
 public enum  TestType {
     PRACTICE,
-    MOCK,
+    NORMALLIVE,
     FINAL,
     RankBooster
 }

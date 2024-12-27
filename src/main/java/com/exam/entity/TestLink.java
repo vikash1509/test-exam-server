@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,9 +16,9 @@ import lombok.Setter;
 @Table(name = "test_info")
 public class TestLink {
     @Id
-    @Column(name = "test_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long testId;
+    @GeneratedValue(strategy = GenerationType.UUID) // Hibernate 6+ supports this
+    @Column(name = "test_id", updatable = false, nullable = false, unique = true)
+    private String testId;
     @Column(name = "test_name")
     private String testName;
     @Column(name = "test_Desc")
@@ -26,14 +27,14 @@ public class TestLink {
     private String testLink;
     @Column(name = "test_type")
     private String testType;
+    @Column(name = "test_for")
+    private String testFor;
     @Column(name = "start_time")
     private LocalDateTime startTime;
     @Column(name = "end_time")
     private LocalDateTime endTime;
     @Column(name = "time_duration")
-    private int timeDuration;
-    @Column(name = "result_file")
-    private File resultFile;
+    private Long timeDuration;
     @Column(name = "user_id")
     private String userId;
     @Column(name = "crate_date")
@@ -42,16 +43,9 @@ public class TestLink {
     private int testTotalMarks;
     private String testCategory;
     private boolean resultPublish = false;
-
-    public boolean isResultFileUploaded() {
-        return resultFileUploaded;
-    }
-
-    public void setResultFileUploaded(boolean resultFileUploaded) {
-        this.resultFileUploaded = resultFileUploaded;
-    }
-
     private boolean resultFileUploaded = false;
+    private Date resultUploadDate;
+    private String TestProviderName;
     @Column(name = "hide_test_info", nullable = false)
     private boolean hideTestInfo = false; // by default it is published after creation
     public String getTestCategory() {
@@ -72,10 +66,10 @@ public class TestLink {
     public void setTestTotalMarks(int testTotalMarks) {
         this.testTotalMarks = testTotalMarks;
     }
-    public Long getTestId() {
+    public String getTestId() {
         return testId;
     }
-    public void setTestId(Long testId) {
+    public void setTestId(String testId) {
         this.testId = testId;
     }
     public String getTestName() {
@@ -102,17 +96,11 @@ public class TestLink {
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
-    public int getTimeDuration() {
+    public Long getTimeDuration() {
         return timeDuration;
     }
-    public void setTimeDuration(int timeDuration) {
+    public void setTimeDuration(Long timeDuration) {
         this.timeDuration = timeDuration;
-    }
-    public File getResultFile() {
-        return resultFile;
-    }
-    public void setResultFile(File resultFile) {
-        this.resultFile = resultFile;
     }
     public String getUserId() {
         return userId;
@@ -143,5 +131,29 @@ public class TestLink {
     }
     public void setHideTestInfo(boolean hideTestInfo) {
         this.hideTestInfo = hideTestInfo;
+    }
+    public boolean isResultFileUploaded() {
+        return resultFileUploaded;
+    }
+    public void setResultFileUploaded(boolean resultFileUploaded) {
+        this.resultFileUploaded = resultFileUploaded;
+    }
+    public String getTestFor() {
+        return testFor;
+    }
+    public void setTestFor(String testFor) {
+        this.testFor = testFor;
+    }
+    public Date getResultUploadDate() {
+        return resultUploadDate;
+    }
+    public void setResultUploadDate(Date resultUploadDate) {
+        this.resultUploadDate = resultUploadDate;
+    }
+    public String getTestProviderName() {
+        return TestProviderName;
+    }
+    public void setTestProviderName(String testProviderName) {
+        TestProviderName = testProviderName;
     }
 }

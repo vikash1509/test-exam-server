@@ -51,7 +51,7 @@ public class UserController {
     @GetMapping("/automate-quiz")
     public String automateQuiz(@RequestParam String username,
                                @RequestParam String userId,
-                               @RequestParam Long testId) {
+                               @RequestParam String testId) {
 
         // Call the automation method with the passed username
       return  userService.automateQuizForm(username,userId,testId);
