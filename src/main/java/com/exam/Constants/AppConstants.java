@@ -16,6 +16,10 @@ public class AppConstants {
     public static final String USER_TYPE_ADMIN = "ADMIN";
 
     // Test Settings
-    public static final String TEST_FOR_PUBLIC = "Public";
+    public static final String TEST_FOR_PUBLIC = "PUBLIC";
+
+    public static final String TEST_FOR_SCHOOL_STUDENT = "SCHOOLSTUDENT";
+
+    public static final String TEST_FOR_COLLEGE_STUDENT= "COLLEGESTUDENT";
 }
 

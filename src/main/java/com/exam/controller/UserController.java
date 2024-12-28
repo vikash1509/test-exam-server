@@ -1,8 +1,8 @@
 package com.exam.controller;
 
-import com.exam.entity.Role;
+//import com.exam.entity.Role;
 import com.exam.entity.User;
-import com.exam.entity.UserRole;
+//import com.exam.entity.UserRole;
 import com.exam.serviceImpl.UserServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +26,13 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody User user) {
         long startTime = System.currentTimeMillis(); // Start time measurement
         try {
-            Set<UserRole> userRoles = new HashSet<>();
+//            Set<UserRole> userRoles = new HashSet<>();
 //            UserRole  userRole = new UserRole();
 //            userRole.setRole(new Role(41L,"Normal"));
 //            userRole.setUser(user);
 //            userRoles.add(userRole);
-            User createdUser = userService.createUser(user,userRoles);
+//            User createdUser = userService.createUser(user,userRoles);
+            User createdUser = userService.createUser(user);
             logger.info("User created successfully: {}", createdUser.getUserName());
 
             long endTime = System.currentTimeMillis(); // End time measurement

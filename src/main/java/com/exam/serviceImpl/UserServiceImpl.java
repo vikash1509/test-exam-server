@@ -3,9 +3,9 @@ package com.exam.serviceImpl;
 import com.exam.controller.UserController;
 import com.exam.entity.TestLink;
 import com.exam.entity.User;
-import com.exam.entity.UserRole;
+//import com.exam.entity.UserRole;
 import com.exam.entity.UserType;
-import com.exam.repository.RoleRepository;
+//import com.exam.repository.RoleRepository;
 import com.exam.repository.TestLinkRepository;
 import com.exam.repository.UserRepository;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -29,11 +29,8 @@ import java.util.*;
 
 @Service
 public class UserServiceImpl {
-
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private RoleRepository roleRepository;
     @Autowired
     private TestLinkRepository testLinkRepository;
     @Autowired
@@ -41,7 +38,8 @@ public class UserServiceImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    public User createUser(User newUser, Set<UserRole> userRoles) throws Exception {
+  //  public User createUser(User newUser, Set<UserRole> userRoles) throws Exception {
+     public User createUser(User newUser) throws Exception {
         long startTime = System.currentTimeMillis(); // Start time
 
         logger.info("Starting createUser method");
@@ -58,13 +56,7 @@ public class UserServiceImpl {
             throw new Exception("User with the same email already exists.");
         }
 
-        // Generate unique userId
-        String userId;
-        do {
-            userId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
-            logger.info("Generated user ID: {}", userId);
-        } while (userRepository.findByUserId(userId).isPresent());
-        newUser.setUserId(userId);
+        newUser.setUserId(String.valueOf(UUID.randomUUID()));
 
         // Generate unique rollNo as a 7-digit random number with prefix MP
         String rollNo;
@@ -75,10 +67,10 @@ public class UserServiceImpl {
         newUser.setUserRollNo(rollNo);
 
         // Save roles
-        for (UserRole ur : userRoles) {
-            roleRepository.save(ur.getRole());
-        }
-        newUser.getUserRoles().addAll(userRoles);
+//        for (UserRole ur : userRoles) {
+//            roleRepository.save(ur.getRole());
+//        }
+//        newUser.getUserRoles().addAll(userRoles);
 
         // Set default user rating and rank
         newUser.setUserRating(1000); // Default rating

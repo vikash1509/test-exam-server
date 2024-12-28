@@ -48,6 +48,7 @@ public class TestLink {
     private String TestProviderName;
     @Column(name = "hide_test_info", nullable = false)
     private boolean hideTestInfo = false; // by default it is published after creation
+    private boolean automateQuiz =false;
     public String getTestCategory() {
         return testCategory;
     }
@@ -155,5 +156,11 @@ public class TestLink {
     }
     public void setTestProviderName(String testProviderName) {
         TestProviderName = testProviderName;
+    }
+    public boolean isAutomateQuiz() {
+        return automateQuiz;
+    }
+    public void setAutomateQuiz(boolean automateQuiz) {
+        this.automateQuiz = automateQuiz;
     }
 }

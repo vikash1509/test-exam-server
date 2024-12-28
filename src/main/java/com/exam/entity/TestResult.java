@@ -17,35 +17,28 @@ public class TestResult {
     private Long id;
     private String submittedTime;
     private String name;
-    @Column(name = "user_id")
-    private String userId;
     private int marks;
     private String result;
     private String answerSheetLink;
     @Column(name = "test_id")
     private String testId;
     private String userRollNo;
-    @Column(name = "marks_difference")
-    private int marksDifference;
+    private int differenceForRating;
     private String startTime;
     private Long timeDuration;
     @Column(name = "student_rank")
     private Integer rank;
     private String userEmail;
+    private String userSchoolOrCollegeName;
+    private String userId;
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)  // Lazy fetching to load the test details only when needed
     @JoinColumn(name = "test_id", referencedColumnName = "test_id", insertable = false, updatable = false)
     @JsonIgnore
     private TestLink testLink; // ManyToOne relationship with TestLink
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)  // Lazy fetching to load the test details only when needed
-//    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
-//    @JsonIgnore
-//    private User user; // ManyToOne relationship with TestLink
-//    public User getUser() {
-//        return user;
-//    }
-//    public void setUser(User user) {
-//        this.user = user;
-//    }
+    // Added Many-to-One relationship with User entity
+//    @ManyToOne(fetch = FetchType.LAZY)  // Lazy fetching for user details
+//    @JoinColumn(name = "user_roll_no", referencedColumnName = "user_roll_no", insertable = false, updatable = false)
+//    private User user; // **New field for the relationship**
     public String getTestId() {
     return testId;
 }
@@ -57,12 +50,6 @@ public class TestResult {
     }
     public void setMarks(int marks) {
         this.marks = marks;
-    }
-    public String getUserId() {
-        return userId;
-    }
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
     public Long getId() {
         return id;
@@ -124,16 +111,34 @@ public class TestResult {
     public void setUserRollNo(String userRollNo) {
         this.userRollNo = userRollNo;
     }
-    public int getMarksDifference() {
-        return marksDifference;
+    public int getDifferenceForRating() {
+        return differenceForRating;
     }
-    public void setMarksDifference(int marksDifference) {
-        this.marksDifference = marksDifference;
+    public void setDifferenceForRating(int marksDifference) {
+        this.differenceForRating = marksDifference;
     }
     public String getUserEmail() {
         return userEmail;
     }
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
+    }
+//    public User getUser() {
+//        return user;
+//    }
+//    public void setUser(User user) {
+//        this.user = user;
+//    }
+    public String getUserSchoolOrCollegeName() {
+        return userSchoolOrCollegeName;
+    }
+    public void setUserSchoolOrCollegeName(String userSchoolOrCollegeName) {
+        this.userSchoolOrCollegeName = userSchoolOrCollegeName;
+    }
+    public String getUserId() {
+        return userId;
+    }
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

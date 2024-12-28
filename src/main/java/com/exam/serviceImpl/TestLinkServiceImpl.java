@@ -30,7 +30,12 @@ public class TestLinkServiceImpl {
                 || TestType.PRACTICE.name().equalsIgnoreCase(testLink.getTestType())
                 || TestType.NORMALLIVE.name().equalsIgnoreCase(testLink.getTestType()))
                 && testLink.getTestLink().startsWith(AppConstants.QUIZZORY_URL_PREFIX)) {
-
+            if(null!=testLink.getTestFor() && (AppConstants.TEST_FOR_SCHOOL_STUDENT.equalsIgnoreCase(testLink.getTestFor())
+                    || AppConstants.TEST_FOR_COLLEGE_STUDENT.equalsIgnoreCase(testLink.getTestFor())
+                    || AppConstants.TEST_FOR_PUBLIC.equalsIgnoreCase(testLink.getTestFor()))){
+            }else{
+                throw new IllegalArgumentException("Please enter Correct TestParticipant category");
+            }
         }else{
             throw new IllegalArgumentException("Please enter Correct TestType Or Correct TestLink");
         }

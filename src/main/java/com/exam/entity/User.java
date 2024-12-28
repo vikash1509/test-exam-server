@@ -59,16 +59,6 @@ public class User {
     public void setOtpExpiry(LocalDateTime otpExpiry) {
         this.otpExpiry = otpExpiry;
     }
-    public Set<UserRole> getUserRoles() {
-        return userRoles;
-    }
-    public void setUserRoles(Set<UserRole> userRoles) {
-        this.userRoles = userRoles;
-    }
-    //User have many roles
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,mappedBy = "user")
-    @JsonIgnore
-    private Set<UserRole> userRoles = new HashSet<>();
     public String getUserName() {
         return userName;
     }
@@ -177,4 +167,14 @@ public class User {
     public void setUserOrganisation(String userOrganisation) {
         this.userOrganisation = userOrganisation;
     }
+    //    public Set<UserRole> getUserRoles() {
+//        return userRoles;
+//    }
+//    public void setUserRoles(Set<UserRole> userRoles) {
+//        this.userRoles = userRoles;
+//    }
+    //User have many roles
+//    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,mappedBy = "user")
+//    @JsonIgnore
+//    private Set<UserRole> userRoles = new HashSet<>();
 }

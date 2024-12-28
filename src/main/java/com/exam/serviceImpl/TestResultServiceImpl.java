@@ -1,4 +1,5 @@
 package com.exam.serviceImpl;
+import com.exam.controller.TestResultController;
 import com.exam.entity.TestLink;
 import com.exam.entity.TestResult;
 import com.exam.entity.User;
@@ -8,6 +9,8 @@ import com.exam.repository.UserRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ public class TestResultServiceImpl {
     private TestLinkRepository testLinkRepository;
     @Autowired
     private UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(TestResultController.class);
 
     /**
      * Delete old test results by testId and save the updated ones.
@@ -47,10 +51,10 @@ public class TestResultServiceImpl {
     }
     @Transactional
     public List<TestResult> saveTestResults(MultipartFile file, String testId) throws Exception {
-        CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()));
         TestLink testLink = testLinkRepository.findById(testId)
                 .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
-        boolean isLiveTest = Objects.equals(testLink.getTestType(), "RankBooster");
+        CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()));
+        boolean isLiveTest = testLink.getTestType().equalsIgnoreCase("RankBooster") || testLink.getTestType().equalsIgnoreCase("NormalLive");
         try {
             DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
             DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
@@ -58,10 +62,10 @@ public class TestResultServiceImpl {
             LocalDateTime startTime = LocalDateTime.parse(testLink.getStartTime().toString(), formatter1);
             List<TestResult> testResults = csvReader.readAll().stream()
                     .skip(1) // Skip the header row
+                    .filter(data -> userRepository.findByUserRollNo(data[3]).isPresent()) // Skip rows where user is not present
                     .map(data -> {
                         Optional<User> user = userRepository.findByUserRollNo(data[3]);
                         TestResult testResult = new TestResult();
-                       if(user.isPresent()){
                            testResult.setSubmittedTime(data[1]);
                            testResult.setName(data[2]);
                            testResult.setUserRollNo(data[3]);
@@ -70,6 +74,8 @@ public class TestResultServiceImpl {
                            testResult.setAnswerSheetLink(data[data.length - 1]);
                            testResult.setTestId(testId);
                            testResult.setUserEmail(user.get().getUserMailId());
+                           testResult.setUserId(user.get().getUserId());
+                           testResult.setUserSchoolOrCollegeName(user.get().getUserSchoolOrCollege());
 
                            System.out.println(startTime);
                            System.out.println(testResult.getSubmittedTime());
@@ -80,60 +86,80 @@ public class TestResultServiceImpl {
                            }else{
                                testResult.setTimeDuration(0L);
                            }
-                       }
+
                         return testResult;
                     })
                     .collect(Collectors.toList());
 
-            System.out.println(testResults.size());
             // Calculate rank based on minimum timeDuration and maximum score (assuming result is the score)
-            testResults = calculateRank(testResults);
+            if(isLiveTest){
+                testResults = calculateRank(testResults);
+            }
               //Need analysis
 //            createOutputCSV(testResults);
-            System.out.println(testResults.size());
-            // Calculate the total marks from TestLink entity using testId
-            double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
-            int rowsUpdted = testLinkRepository.updateResultFileUplodedByTestId(testId, true);
-            System.out.println("rows updated In TestReslutServiceImpl : " + rowsUpdted);
 
-            // Calculate the average marks of all students
-            int avgMarks = (int) testResults.stream()
-                    .mapToDouble(TestResult::getMarks)
-                    .average()
-                    .orElse(0.0);
+            if(testLink.getTestType().equalsIgnoreCase("Rankbooster")) {
+                // Calculate the total marks from TestLink entity using testId
+                double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
 
-            for (TestResult result : testResults) {
-                int studentMarks = result.getMarks();
-                int marksDifference = (int) (((studentMarks - avgMarks) / totalMarks) * 100);
-                result.setMarksDifference(marksDifference);
+                // Calculate the average marks of all students
+                int avgMarks = (int) testResults.stream()
+                        .mapToDouble(TestResult::getMarks)
+                        .average()
+                        .orElse(0.0);
+
+                for (TestResult result : testResults) {
+                    int studentMarks = result.getMarks();
+                    // Calculate the percentage difference
+                    double percentageDifference = ((avgMarks - studentMarks) / (double) avgMarks) * 100;
+
+                    // Set the percentage difference in the result
+                    result.setDifferenceForRating((int) Math.round(percentageDifference)); // Store as an integer
+
+                    // Optionally, log or return the percentage difference for debugging
+                    System.out.println("Student Marks: " + studentMarks + ", Avg Marks: " + avgMarks + ", Percentage Difference: " + percentageDifference + "%");
+
+                }
             }
 
+            int rowsUpdted = testLinkRepository.updateResultFileUplodedByTestId(testId, true);
+            System.out.println("rows updated In TestReslutServiceImpl : " + rowsUpdted);
             // Save to database
             return testResultRepository.saveAll(testResults);
 
             // Enhancement add resultuploadTime in to testLink
 
         }catch (Exception e) {
-            throw new IllegalArgumentException("Invalid time format: " + e.getMessage());
+            throw new IllegalArgumentException(e.getMessage());
         }
 
     }
 
 
     private List<TestResult> calculateRank(List<TestResult> testResults) {
-        for (int i = 0; i < testResults.size(); i++) {
-            System.out.println(testResults.get(i).getUserRollNo());
-            System.out.println(testResults.get(i).getUserEmail());
-
+        if (testResults == null || testResults.isEmpty()) {
+            // Log a message or handle this scenario accordingly
+            logger.warn("Test results list is null or empty, cannot calculate rank.");
+            return Collections.emptyList();  // Return an empty list if there are no results
         }
-        testResults.sort(Comparator.comparing(TestResult::getTimeDuration)
-                .thenComparing(Comparator.comparing(TestResult::getMarks).reversed()));
 
+        // Sort the test results by time duration and then by marks in descending order
+        testResults.sort(Comparator.comparing(TestResult::getTimeDuration, Comparator.nullsLast(Long::compare))
+                .thenComparing(Comparator.comparing(TestResult::getMarks, Comparator.nullsLast(Comparator.reverseOrder()))));
+
+        // Assign ranks to each test result
         for (int i = 0; i < testResults.size(); i++) {
-            testResults.get(i).setRank(i + 1);
+            TestResult result = testResults.get(i);
+            if (result != null) {
+                result.setRank(i + 1);
+            } else {
+                logger.warn("Encountered null test result at index {}", i);
+            }
         }
+
         return testResults;
     }
+
 
     public List<TestResult> getTestResultsByUserId(String userId) {
         System.out.println(userId);
@@ -179,35 +205,24 @@ public class TestResultServiceImpl {
 
     @Transactional
     public void updateUserRatings(String testId) {
-        // Fetch test results for the given testId
         List<TestResult> testResults = testResultRepository.findByTestId(testId);
-
-        // Iterate over each test result and update the user's rating
-        for (TestResult result : testResults) {
+       for (TestResult result : testResults) {
             String userId = result.getUserId();
-            int marksDifference = result.getMarksDifference();
+            int marksDifference = result.getDifferenceForRating();
 
-            // Fetch the user entity by userId
             Optional<User> optionalUser = userRepository.findByUserId(userId);
             if (optionalUser.isPresent()) {
-                System.out.println("in ---- updateUserRatings");
-
                 User user = optionalUser.get();
-                System.out.println("in ---- updateUserRatings----2");
-
-                // Update user's rating based on marksDifference logic
                 int currentRating = user.getUserRating();
                 int updatedRating = calculateNewRating(currentRating, marksDifference);
-                user.setUserRating(updatedRating);
-
-                // Save updated user entity
-                userRepository.save(user);
+               int rowsupdated =  userRepository.updateUserRating(userId,updatedRating);
+                System.out.println("in ---- updateUserRatings----3   rowsupdated" + rowsupdated + " " + userId + " "+updatedRating + "MM" + marksDifference);
             }
             // If user is not found, skip to next iteration without throwing an error
         }
 
         // After updating all user ratings, update the rank for all users based on descending order of rating
-        updateUserRankings();
+//        updateUserRankings();
     }
 
     // Method to calculate new rating based on existing rating and marks difference

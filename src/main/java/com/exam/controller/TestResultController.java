@@ -39,17 +39,7 @@ public class TestResultController {
         long startTime = System.currentTimeMillis();
         try {
             List<TestResult> results = testResultService.saveTestResults(file, testId);
-            File csvFile = testResultService.getOutputCSVFile();
-
-            InputStreamResource resource = new InputStreamResource(new FileInputStream(csvFile));
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + csvFile.getName());
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentLength(csvFile.length())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource);
+            return ResponseEntity.ok(results);
         } catch (Exception e) {
             logger.error("Error in uploadTestResults: {}", e.getMessage());
             return ResponseEntity.status(500).body(e.getMessage());
@@ -143,8 +133,8 @@ public class TestResultController {
         }
     }
 
-    @PostMapping("/updateUserRatings/{testId}")
-    public ResponseEntity<String> updateUserRatings(@PathVariable String testId) {
+    @PostMapping("/updateUserRatings")
+    public ResponseEntity<String> updateUserRatings( @RequestParam("testId") String testId) {
 
         long startTime = System.currentTimeMillis();
         try {
