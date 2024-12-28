@@ -14,12 +14,17 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
     @Query("SELECT tr FROM TestResult tr WHERE tr.userId = :userId")
     List<TestResult> findByUserId(@Param("userId") String userId);
 
-
     void deleteByTestId(String testId);
 
     List<TestResult> findByTestId(String testId);
 
     @Query("SELECT tr FROM TestResult tr WHERE tr.userId = :userId AND tr.testId = :testId")
     List<TestResult> findByUserIdAndTestId(@Param("userId") String userId, @Param("testId") Long testId);
+
+    @Query("SELECT COUNT(t) > 0 FROM TestResult t WHERE t.userRollNo = :userRollNo AND t.submittedTime = :submittedTime")
+    boolean existsByUserRollNoAndSubmittedTime(@Param("userRollNo") String userRollNo, @Param("submittedTime") String submittedTime);
+
+    @Query("SELECT COUNT(t) > 0 FROM TestResult t WHERE t.answerSheetLink = :answerSheetLink")
+    boolean existsByAnswerSheetLink(@Param("answerSheetLink") String answerSheetLink);
 
 }

@@ -38,15 +38,12 @@ public class TestResultServiceImpl {
     @Autowired
     private UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(TestResultController.class);
-
     /**
      * Delete old test results by testId and save the updated ones.
      */
     @Transactional // Ensure this method runs in a transactional context
     public List<TestResult> saveUpdatedTestResults(MultipartFile file, String testId) throws Exception {
-
         testResultRepository.deleteByTestId(testId);
-
         return saveTestResults(file,testId);
     }
     @Transactional
@@ -63,6 +60,7 @@ public class TestResultServiceImpl {
             List<TestResult> testResults = csvReader.readAll().stream()
                     .skip(1) // Skip the header row
                     .filter(data -> userRepository.findByUserRollNo(data[3]).isPresent()) // Skip rows where user is not present
+                    .filter(data -> !testResultRepository.existsByAnswerSheetLink(data[data.length - 1])) // Skip rows already in the database
                     .map(data -> {
                         Optional<User> user = userRepository.findByUserRollNo(data[3]);
                         TestResult testResult = new TestResult();
@@ -77,8 +75,6 @@ public class TestResultServiceImpl {
                            testResult.setUserId(user.get().getUserId());
                            testResult.setUserSchoolOrCollegeName(user.get().getUserSchoolOrCollege());
 
-                           System.out.println(startTime);
-                           System.out.println(testResult.getSubmittedTime());
                            if(isLiveTest){
                                LocalDateTime submitTime = LocalDateTime.parse(testResult.getSubmittedTime(), formatter2);
                                long timeDuration = Duration.between(startTime, submitTime).toMinutes();// Implement this method
@@ -86,7 +82,6 @@ public class TestResultServiceImpl {
                            }else{
                                testResult.setTimeDuration(0L);
                            }
-
                         return testResult;
                     })
                     .collect(Collectors.toList());
@@ -94,6 +89,8 @@ public class TestResultServiceImpl {
             // Calculate rank based on minimum timeDuration and maximum score (assuming result is the score)
             if(isLiveTest){
                 testResults = calculateRank(testResults);
+            }else{
+                //Enhancement ---->   add logic for practice test to calculate rank
             }
               //Need analysis
 //            createOutputCSV(testResults);
@@ -112,13 +109,10 @@ public class TestResultServiceImpl {
                     int studentMarks = result.getMarks();
                     // Calculate the percentage difference
                     double percentageDifference = ((avgMarks - studentMarks) / (double) avgMarks) * 100;
-
                     // Set the percentage difference in the result
                     result.setDifferenceForRating((int) Math.round(percentageDifference)); // Store as an integer
-
                     // Optionally, log or return the percentage difference for debugging
                     System.out.println("Student Marks: " + studentMarks + ", Avg Marks: " + avgMarks + ", Percentage Difference: " + percentageDifference + "%");
-
                 }
             }
 
@@ -126,13 +120,11 @@ public class TestResultServiceImpl {
             System.out.println("rows updated In TestReslutServiceImpl : " + rowsUpdted);
             // Save to database
             return testResultRepository.saveAll(testResults);
-
             // Enhancement add resultuploadTime in to testLink
 
         }catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage());
         }
-
     }
 
 
@@ -220,9 +212,8 @@ public class TestResultServiceImpl {
             }
             // If user is not found, skip to next iteration without throwing an error
         }
-
         // After updating all user ratings, update the rank for all users based on descending order of rating
-//        updateUserRankings();
+        //updateUserRankings();
     }
 
     // Method to calculate new rating based on existing rating and marks difference

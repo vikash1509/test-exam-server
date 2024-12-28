@@ -39,6 +39,7 @@ public class TestResultController {
         long startTime = System.currentTimeMillis();
         try {
             List<TestResult> results = testResultService.saveTestResults(file, testId);
+            logger.info("TestResults added in database: {} ", results.size());
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             logger.error("Error in uploadTestResults: {}", e.getMessage());
