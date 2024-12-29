@@ -18,6 +18,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -35,6 +36,8 @@ public class UserServiceImpl {
     private TestLinkRepository testLinkRepository;
     @Autowired
     private EmailServiceImpl emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -66,7 +69,9 @@ public class UserServiceImpl {
         } while (userRepository.findByUserRollNo(rollNo).isPresent());
         newUser.setUserRollNo(rollNo);
 
-        // Save roles
+        newUser.setUserPassword(passwordEncoder.encode(newUser.getUserPassword())); // Encrypt password
+
+         // Save roles
 //        for (UserRole ur : userRoles) {
 //            roleRepository.save(ur.getRole());
 //        }
@@ -116,6 +121,7 @@ public class UserServiceImpl {
 
 
     public User loginUser(String email, String userPassword) throws Exception {
+         System.out.println("use in login user imp class");
         // Find user by username or email
         Optional<User> optionalUser = userRepository.findByUserMailId(email);
 
@@ -124,10 +130,10 @@ public class UserServiceImpl {
         }
 
         User user = optionalUser.get();
-
-        // Validate password
-        if (!user.getUserPassword().equals(userPassword)) {
-            throw new Exception("Invalid password. Please try again.");
+        System.out.println(passwordEncoder.encode(userPassword) + "  *******************  " + user.getUserPassword());
+        if (!passwordEncoder.matches(userPassword, user.getUserPassword())) {
+            System.out.println("in if block");
+            throw new Exception("Invalid password.... Please try again.");
         }
         userRepository.updateUserLastLogin(user.getUserId(),LocalDateTime.now());
         // If password matches, return the user

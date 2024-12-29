@@ -9,8 +9,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-		@SpringBootApplication
-		public class ExamserverApplication {
+@SpringBootApplication
+public class ExamserverApplication {
 
 			private static final Logger logger = LoggerFactory.getLogger(ExamserverApplication.class);
 
@@ -33,4 +33,4 @@ import org.slf4j.LoggerFactory;
 				logger.debug("CORS filter configured successfully!");
 				return new CorsFilter(source);
 			}
-		}
+}
