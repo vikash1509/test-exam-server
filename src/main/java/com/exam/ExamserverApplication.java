@@ -19,18 +19,18 @@ public class ExamserverApplication {
 				logger.info("ExamserverApplication started successfully!");
 			}
 
-			@Bean
-			public CorsFilter corsFilter() {
-				CorsConfiguration config = new CorsConfiguration();
-				config.addAllowedOrigin("http://localhost:3000");// React App URL
-				config.addAllowedOrigin("https://17st.github.io");
-				config.addAllowedHeader("*"); // Allow all headers
-				config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
-				config.setAllowCredentials(true); // If you use cookies or authentication
-
-				UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-				source.registerCorsConfiguration("/**", config);
-				logger.debug("CORS filter configured successfully!");
-				return new CorsFilter(source);
-			}
+//			@Bean
+//			public CorsFilter corsFilter() {
+//				CorsConfiguration config = new CorsConfiguration();
+//				config.addAllowedOrigin("http://localhost:3000");// React App URL
+//				config.addAllowedOrigin("https://17st.github.io");
+//				config.addAllowedHeader("*"); // Allow all headers
+//				config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
+//				config.setAllowCredentials(true); // If you use cookies or authentication
+//
+//				UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//				source.registerCorsConfiguration("/**", config);
+//				logger.debug("CORS filter configured successfully!");
+//				return new CorsFilter(source);
+//			}
 }

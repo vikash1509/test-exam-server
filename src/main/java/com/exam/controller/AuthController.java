@@ -20,12 +20,12 @@ public class AuthController {
     private JwtTokenUtil jwtTokenUtil;
 
 
-    @PostMapping("/login_user")
+    @GetMapping("/login_user")
     public ResponseEntity<?> loginUser(@RequestParam String userEmail,
                                        @RequestParam String userPass ) {
         try{
             User user = userService.loginUser(userEmail, userPass);
-            String token = jwtTokenUtil.generateToken(user.getUserMailId());
+            String token = jwtTokenUtil.generateToken(user.getUserMailId(),user.getUserType(),user.getUserId());
             return ResponseEntity.ok(Map.of("token", token));
         }
         catch (Exception e) {

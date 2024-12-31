@@ -2,6 +2,8 @@ package com.exam.controller;
 
 import com.exam.entity.TestLink;
 import com.exam.serviceImpl.TestLinkServiceImpl;
+import com.exam.util.JwtTokenUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +16,31 @@ public class TestLinkController {
 
     @Autowired
     private TestLinkServiceImpl testInfoService;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TestLinkController.class);
 
     @PostMapping("/create")
-    public ResponseEntity<?> createTest(@RequestBody TestLink testInfo) {
+    public ResponseEntity<?> createTest(@RequestBody TestLink testInfo, HttpServletRequest request) {
         long startTime = System.currentTimeMillis();
         try {
             logger.info("Starting createTest method");
-            TestLink createdTest = testInfoService.createTest(testInfo);
+
+            // Extract the token from the Authorization header
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+            }
+
+            String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+
+            // Decode or validate the token and extract the userId (Assume `jwtTokenUtil` is your utility class)
+            String userId = jwtTokenUtil.getClaimFromToken(token, "userId");
+
+            // Call the service method with the extracted userId
+            TestLink createdTest = testInfoService.createTest(testInfo, userId);
+
             logger.info("createTest executed successfully in {} ms", System.currentTimeMillis() - startTime);
             return ResponseEntity.ok(createdTest);
         } catch (Exception e) {
@@ -30,6 +48,7 @@ public class TestLinkController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     @PutMapping("/hide-test-info")
     public String updateHideTestInfo(@RequestParam String testId, @RequestParam boolean hideTestInfo) {

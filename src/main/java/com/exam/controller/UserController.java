@@ -4,6 +4,8 @@ package com.exam.controller;
 import com.exam.entity.User;
 //import com.exam.entity.UserRole;
 import com.exam.serviceImpl.UserServiceImpl;
+import com.exam.util.JwtTokenUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,8 @@ public class UserController {
 
     @Autowired
     private UserServiceImpl userService;
-
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/create")
@@ -89,11 +92,22 @@ public class UserController {
     }
 
     @GetMapping("/get-user")
-    public ResponseEntity<?> getUser(@RequestParam String userId) {
-        try{
+    public ResponseEntity<?> getUser(HttpServletRequest request) {
+        try {
+            // Extract the token from the Authorization header
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+            }
+
+            String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+
+            // Decode or validate the token (e.g., using a library like jjwt or auth0)
+            String userId = jwtTokenUtil.getClaimFromToken(token,"userId");
+
+            // Fetch user details using the userId
             return ResponseEntity.ok(userService.getUser(userId));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

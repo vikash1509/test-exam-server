@@ -45,7 +45,7 @@ public class TestLink {
     private boolean resultPublish = false;
     private boolean resultFileUploaded = false;
     private Date resultUploadDate;
-    private String TestProviderName;
+    private String testProviderName;
     @Column(name = "hide_test_info", nullable = false)
     private boolean hideTestInfo = false; // by default it is published after creation
     private boolean automateQuiz =false;
@@ -152,10 +152,10 @@ public class TestLink {
         this.resultUploadDate = resultUploadDate;
     }
     public String getTestProviderName() {
-        return TestProviderName;
+        return testProviderName;
     }
     public void setTestProviderName(String testProviderName) {
-        TestProviderName = testProviderName;
+        testProviderName = testProviderName;
     }
     public boolean isAutomateQuiz() {
         return automateQuiz;

@@ -24,7 +24,11 @@ public class TestLinkServiceImpl {
     @Autowired
     private UserRepository userRepository;
 
-    public TestLink createTest(TestLink testLink) throws Exception{
+    public TestLink createTest(TestLink testLink,String userId) throws Exception{
+
+        if(null==userId){
+            throw new IllegalArgumentException("Please enter  User ID ");
+        }
 
         if ((TestType.RankBooster.name().equalsIgnoreCase(testLink.getTestType())
                 || TestType.PRACTICE.name().equalsIgnoreCase(testLink.getTestType())
@@ -60,10 +64,8 @@ public class TestLinkServiceImpl {
             }
         }
         //Add logic for check userType and add TestProviderName (userName / OrganisationName)
-        if(null==testLink.getUserId()){
-            throw new IllegalArgumentException("Please enter  User ID ");
-        }
-       Optional<User> user =  userRepository.findByUserId(testLink.getUserId());
+
+       Optional<User> user =  userRepository.findByUserId(userId);
        if(user.isEmpty() || !Objects.equals(user.get().getUserType(), "ADMIN")){
            throw new IllegalArgumentException("Invalid User ID Or UserType");
        }
@@ -77,7 +79,7 @@ public class TestLinkServiceImpl {
             System.out.println("Test start time must be in the future.");
             return null;
         }
-
+        testLink.setUserId(userId);
         // Existing conditions for test type and test link
         return testInfoRepository.save(testLink);
 
