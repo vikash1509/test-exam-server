@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/tests/showLiveTest").permitAll()
                         .requestMatchers("/api/tests/showPracticeTest").permitAll()
                         .requestMatchers("/api/tests/create").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

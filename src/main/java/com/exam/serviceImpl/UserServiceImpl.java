@@ -95,6 +95,11 @@ public class UserServiceImpl {
         return existingUser;
     }
 
+    public Optional<User> getallUser (String userId){
+    //  write logic to get all user
+        return null;
+    }
+
     private void checkTypeOfUser(User user) throws Exception {
         String userType = user.getUserType().toUpperCase();
 
@@ -132,7 +137,6 @@ public class UserServiceImpl {
         User user = optionalUser.get();
         System.out.println(passwordEncoder.encode(userPassword) + "  *******************  " + user.getUserPassword());
         if (!passwordEncoder.matches(userPassword, user.getUserPassword())) {
-            System.out.println("in if block");
             throw new Exception("Invalid password.... Please try again.");
         }
         userRepository.updateUserLastLogin(user.getUserId(),LocalDateTime.now());
@@ -197,7 +201,7 @@ public class UserServiceImpl {
 
     private final SecureRandom random = new SecureRandom();
 
-    public void generateAndSendOtp(String email) {
+    public void generateAndSendOtp(String email) throws Exception{
         User user = userRepository.findByUserMailId(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -205,11 +209,12 @@ public class UserServiceImpl {
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(5)); // OTP valid for 5 minutes
         userRepository.save(user);
+        System.out.println(otp);
 
         emailService.sendEmail(email, "Your OTP Code", "Your OTP is: " + otp);
     }
 
-    public void verifyOtp(String email, String otp) {
+    public void verifyOtp(String email, String otp) throws Exception{
         User user = userRepository.findByUserMailId(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -227,15 +232,15 @@ public class UserServiceImpl {
         userRepository.save(user);
     }
 
-    public void resetPassword(String email, String newPassword) {
+    public void resetPassword(String email, String newPassword) throws Exception{
         User user = userRepository.findByUserMailId(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (user.getUserPassword().equals(newPassword)) {
-            throw new IllegalArgumentException("New password cannot be the same as the old password.");
-        }
+//        if (user.getUserPassword().equals(newPassword)) {
+//            throw new IllegalArgumentException("New password cannot be the same as the old password.");
+//        }
 
-        user.setUserPassword(newPassword); // Use a secure hashing algorithm in production
+        user.setUserPassword(passwordEncoder.encode(newPassword)); // Encrypt password
         userRepository.save(user);
     }
 }

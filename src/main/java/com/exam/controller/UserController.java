@@ -62,33 +62,36 @@ public class UserController {
 
     }
 
-    @GetMapping("/login_user")
-    public ResponseEntity<?> loginUser(@RequestParam String userNameOrEmail,
-                               @RequestParam String userPass ) {
-        try{
-            return ResponseEntity.ok(userService.loginUser(userNameOrEmail,userPass));
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        userService.generateAndSendOtp(email);
-        return ResponseEntity.ok("OTP sent to your email.");
+    @GetMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String userEmail) {
+        try {
+            userService.generateAndSendOtp(userEmail);
+            return ResponseEntity.ok("OTP sent to your email.");
+        }catch (Exception e){
+           return ResponseEntity.badRequest().body(String.valueOf(e));
+        }
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        userService.verifyOtp(email, otp);
-        return ResponseEntity.ok("OTP verified successfully.");
+        try{
+            userService.verifyOtp(email, otp);
+            return ResponseEntity.ok("OTP verified successfully.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(String.valueOf(e));
+        }
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
-        userService.resetPassword(email, newPassword);
-        return ResponseEntity.ok("Password updated successfully.");
+        try{
+            userService.resetPassword(email, newPassword);
+            return ResponseEntity.ok("Password updated successfully.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(String.valueOf(e));
+        }
+
     }
 
     @GetMapping("/get-user")
@@ -110,6 +113,45 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/get-all-user")
+    public ResponseEntity<?> getAllUser(HttpServletRequest request) {
+        try {
+            // Extract the token from the Authorization header
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+            }
+
+            String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
+
+            // Decode or validate the token (e.g., using a library like jjwt or auth0)
+            String userId = jwtTokenUtil.getClaimFromToken(token,"userId");
+
+            // Fetch user details using the userId
+            return ResponseEntity.ok(userService.getallUser(userId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password-otp")
+    public ResponseEntity<String> resetPasswordWithOtp(@RequestParam String userEmail, @RequestParam String newPassword,@RequestParam String otp) {
+        try{
+            userService.verifyOtp(userEmail, otp);
+            logger.info("OTP Verified successfully : ");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(String.valueOf(e));
+        }
+
+        try{
+            userService.resetPassword(userEmail, newPassword);
+            return ResponseEntity.ok("Password updated successfully.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(String.valueOf(e));
+        }
+
     }
 
 }
