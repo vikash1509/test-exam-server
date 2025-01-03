@@ -63,7 +63,11 @@ public class TestLinkController {
     public List<TestLink> showLiveTest() {
         long startTime = System.currentTimeMillis();
         logger.info("Starting showLiveTest method");
-        List<TestLink> liveTests = testInfoService.getTestLink("RankBooster");
+        // Extract test links for "Rankbooster"
+        List<TestLink> liveTests = testInfoService.getTestLink("Rankbooster");
+        // Extract test links for "NormalLive" and add them to the list
+        List<TestLink> normalLiveTests = testInfoService.getTestLink("NormalLive");
+        liveTests.addAll(normalLiveTests);
         logger.info("showLiveTest executed successfully in {} ms", System.currentTimeMillis() - startTime);
         return liveTests;
     }
@@ -81,7 +85,8 @@ public class TestLinkController {
     public List<TestLink> showAllLiveTest() {
         long startTime = System.currentTimeMillis();
         logger.info("Starting showAllLiveTest method");
-        List<TestLink> allLiveTests = testInfoService.getAllTestLink("RankBooster");
+        List<TestLink> allLiveTests = testInfoService.getAllTestLink("Rankbooster");
+        allLiveTests.addAll(testInfoService.getAllTestLink("NormalLive"));
         logger.info("showAllLiveTest executed successfully in {} ms", System.currentTimeMillis() - startTime);
         return allLiveTests;
     }

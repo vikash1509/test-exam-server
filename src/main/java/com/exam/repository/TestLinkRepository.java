@@ -19,6 +19,12 @@ public interface TestLinkRepository extends JpaRepository<TestLink, String> {
     @Query("SELECT t FROM TestLink t WHERE t.testType = :testType AND t.hideTestInfo = false")
     List<TestLink> findTestIdsByTestTypeAndHideTestInfoFalse(@Param("testType") String testType);
 
+    @Query("SELECT t FROM TestLink t WHERE t.testType LIKE %:testType AND t.hideTestInfo = false")
+    List<TestLink> findTestIdsByTestTypeSuffixAndHideTestInfoFalse(@Param("testType") String testType);
+
+    @Query("SELECT t FROM TestLink t WHERE t.testType LIKE %:testType")
+    List<TestLink> findByTestTypeSuffix(@Param("testType") String testType);
+
     @Modifying
     @Transactional
     @Query("UPDATE TestLink t SET t.hideTestInfo = :hideTestInfo WHERE t.id = :testId")

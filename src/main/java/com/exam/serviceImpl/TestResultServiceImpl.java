@@ -48,84 +48,116 @@ public class TestResultServiceImpl {
     }
     @Transactional
     public List<TestResult> saveTestResults(MultipartFile file, String testId) throws Exception {
+        logger.info("Entering saveTestResults with testId: {}", testId);
+
+        // Retrieve the TestLink associated with the testId
         TestLink testLink = testLinkRepository.findById(testId)
-                .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
+                .orElseThrow(() -> {
+                    logger.error("TestLink not found for id: {}", testId);
+                    return new Exception("TestLink not found for id: " + testId);
+                });
+
+        logger.debug("Retrieved TestLink: {}", testLink);
+
         CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()));
         boolean isLiveTest = testLink.getTestType().equalsIgnoreCase("RankBooster") || testLink.getTestType().equalsIgnoreCase("NormalLive");
+        logger.info("Test type is '{}'. Is live test: {}", testLink.getTestType(), isLiveTest);
+
         try {
             DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
             DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-            // Parse the time strings into LocalDateTime objects
             LocalDateTime startTime = LocalDateTime.parse(testLink.getStartTime().toString(), formatter1);
+            logger.debug("Parsed start time: {}", startTime);
+
+            // Read and process CSV file
             List<TestResult> testResults = csvReader.readAll().stream()
                     .skip(1) // Skip the header row
-                    .filter(data -> userRepository.findByUserRollNo(data[3]).isPresent()) // Skip rows where user is not present
-                    .filter(data -> !testResultRepository.existsByAnswerSheetLink(data[data.length - 1])) // Skip rows already in the database
+                    .filter(data -> {
+                        boolean userExists = userRepository.findByUserRollNo(data[3]).isPresent();
+                        if (!userExists) {
+                            logger.warn("Skipping row as user with roll number {} is not found", data[3]);
+                        }
+                        return userExists;
+                    })
+                    .filter(data -> {
+                        boolean alreadyExists = testResultRepository.existsByAnswerSheetLink(data[data.length - 1]);
+                        if (alreadyExists) {
+                            logger.warn("Skipping row as answer sheet link {} already exists in database", data[data.length - 1]);
+                        }
+                        return !alreadyExists;
+                    })
                     .map(data -> {
                         Optional<User> user = userRepository.findByUserRollNo(data[3]);
                         TestResult testResult = new TestResult();
-                           testResult.setSubmittedTime(data[1]);
-                           testResult.setName(data[2]);
-                           testResult.setUserRollNo(data[3]);
-                           testResult.setMarks(Integer.parseInt(data[4]));
-                           testResult.setResult(data[5]);
-                           testResult.setAnswerSheetLink(data[data.length - 1]);
-                           testResult.setTestId(testId);
-                           testResult.setUserEmail(user.get().getUserMailId());
-                           testResult.setUserId(user.get().getUserId());
-                           testResult.setUserSchoolOrCollegeName(user.get().getUserSchoolOrCollege());
+                        testResult.setSubmittedTime(data[1]);
+                        testResult.setName(data[2]);
+                        testResult.setUserRollNo(data[3]);
+                        testResult.setMarks(Integer.parseInt(data[4]));
+                        testResult.setResult(data[5]);
+                        testResult.setAnswerSheetLink(data[data.length - 1]);
+                        testResult.setTestId(testId);
+                        user.ifPresent(u -> {
+                            testResult.setUserEmail(u.getUserMailId());
+                            testResult.setUserId(u.getUserId());
+                            testResult.setUserSchoolOrCollegeName(u.getUserSchoolOrCollege());
+                        });
 
-                           if(isLiveTest){
-                               LocalDateTime submitTime = LocalDateTime.parse(testResult.getSubmittedTime(), formatter2);
-                               long timeDuration = Duration.between(startTime, submitTime).toMinutes();// Implement this method
-                               testResult.setTimeDuration(timeDuration);
-                           }else{
-                               testResult.setTimeDuration(0L);
-                           }
+                        if (isLiveTest) {
+                            LocalDateTime submitTime = LocalDateTime.parse(testResult.getSubmittedTime(), formatter2);
+                            long timeDuration = Duration.between(startTime, submitTime).toMinutes();
+                            testResult.setTimeDuration(timeDuration);
+                            logger.debug("Calculated time duration: {} minutes for user roll number {}", timeDuration, data[3]);
+                        } else {
+                            testResult.setTimeDuration(0L);
+                        }
                         return testResult;
                     })
                     .collect(Collectors.toList());
 
-            // Calculate rank based on minimum timeDuration and maximum score (assuming result is the score)
-            if(isLiveTest){
+            logger.info("Processed {} test results from CSV", testResults.size());
+
+            // Calculate ranks for live tests
+            if (isLiveTest) {
+                logger.info("Calculating ranks for live test");
                 testResults = calculateRank(testResults);
-            }else{
-                //Enhancement ---->   add logic for practice test to calculate rank
+            } else {
+                logger.info("Skipping rank calculation for non-live test");
             }
-              //Need analysis
-//            createOutputCSV(testResults);
 
-            if(testLink.getTestType().equalsIgnoreCase("Rankbooster")) {
-                // Calculate the total marks from TestLink entity using testId
-                double totalMarks = testLink.getTestTotalMarks(); // Assuming there's a getTotalMarks() method in TestLink
-
-                // Calculate the average marks of all students
+            // Additional processing for "RankBooster" test type
+            if (testLink.getTestType().equalsIgnoreCase("Rankbooster")) {
+                double totalMarks = testLink.getTestTotalMarks();
                 int avgMarks = (int) testResults.stream()
                         .mapToDouble(TestResult::getMarks)
                         .average()
                         .orElse(0.0);
+                logger.debug("Total marks: {}, Average marks: {}", totalMarks, avgMarks);
 
                 for (TestResult result : testResults) {
                     int studentMarks = result.getMarks();
-                    // Calculate the percentage difference
                     double percentageDifference = ((avgMarks - studentMarks) / (double) avgMarks) * 100;
-                    // Set the percentage difference in the result
-                    result.setDifferenceForRating((int) Math.round(percentageDifference)); // Store as an integer
-                    // Optionally, log or return the percentage difference for debugging
-                    System.out.println("Student Marks: " + studentMarks + ", Avg Marks: " + avgMarks + ", Percentage Difference: " + percentageDifference + "%");
+                    result.setDifferenceForRating((int) Math.round(percentageDifference));
+                    logger.debug("Calculated percentage difference for user {}: {}", result.getUserRollNo(), percentageDifference);
                 }
             }
 
-            int rowsUpdted = testLinkRepository.updateResultFileUplodedByTestId(testId, true);
-            System.out.println("rows updated In TestReslutServiceImpl : " + rowsUpdted);
-            // Save to database
-            return testResultRepository.saveAll(testResults);
-            // Enhancement add resultuploadTime in to testLink
+            // Update TestLink to indicate the results file is uploaded
+            int rowsUpdated = testLinkRepository.updateResultFileUplodedByTestId(testId, true);
+            logger.info("Updated result file uploaded status for testId: {}. Rows affected: {}", testId, rowsUpdated);
 
-        }catch (Exception e) {
-            throw new IllegalArgumentException(e.getMessage());
+            // Save test results to the database
+            List<TestResult> savedResults = testResultRepository.saveAll(testResults);
+            logger.info("Saved {} test results to the database", savedResults.size());
+
+            logger.info("Exiting saveTestResults with testId: {}", testId);
+            return savedResults;
+
+        } catch (Exception e) {
+            logger.error("Error occurred while saving test results for testId: {}: {}", testId, e.getMessage());
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
+
 
 
     private List<TestResult> calculateRank(List<TestResult> testResults) {
@@ -158,18 +190,38 @@ public class TestResultServiceImpl {
         return testResultRepository.findByUserId(userId);
     }
 
-    public List<TestResult> getTestResultsByTestId(String testId,boolean forAdmin) throws Exception {
+    public List<TestResult> getTestResultsByTestId(String testId, boolean forAdmin) throws Exception {
+        logger.info("Entering getTestResultsByTestId with testId: {}, forAdmin: {}", testId, forAdmin);
+
+        // Fetch the TestLink associated with the testId
         TestLink testLink = testLinkRepository.findById(testId)
-                .orElseThrow(() -> new Exception("TestLink not found for id: " + testId));
-        System.out.println("testLink available" + testLink);
-        if(forAdmin){
-            return testResultRepository.findByTestId(testId);
+                .orElseThrow(() -> {
+                    logger.error("TestLink not found for testId: {}", testId);
+                    return new Exception("TestLink not found for id: " + testId);
+                });
+
+        logger.debug("Retrieved TestLink: {}", testLink);
+
+        if (forAdmin) {
+            logger.info("Admin request detected, retrieving all test results for testId: {}", testId);
+            List<TestResult> results = testResultRepository.findByTestId(testId);
+            logger.info("Found {} test results for testId: {}", results.size(), testId);
+            return results;
         }
-        if(!testLink.isResultPublish()){
+
+        if (!testLink.isResultPublish()) {
+            logger.warn("Results not published for testId: {}", testId);
             throw new Exception("Result not published yet for Test ID: " + testId);
         }
-        return testResultRepository.findByTestId(testId);
+
+        logger.info("Results published for testId: {}, retrieving results for users.", testId);
+        List<TestResult> results = testResultRepository.findByTestId(testId);
+        logger.info("Found {} test results for testId: {}", results.size(), testId);
+
+        logger.info("Exiting getTestResultsByTestId with testId: {}", testId);
+        return results;
     }
+
 
     private void createOutputCSV(List<TestResult> testResults) throws Exception {
         // Create CSVWriter to write the output CSV file

@@ -46,19 +46,25 @@ public class TestLinkServiceImpl {
 
         //add logic for testLink entites should not be null
 
+        // Check if the start time is after the current time
+        if (testLink.getStartTime() == null || (testLink.getStartTime() != null && testLink.getStartTime().isBefore(LocalDateTime.now()))) {
+            System.out.println("Test start time must be in the future.");
+            return null;
+        }
+
         // Check if end time is at least 5 minutes after start time
         if ((TestType.RankBooster.name().equalsIgnoreCase(testLink.getTestType())
                 || TestType.NORMALLIVE.name().equalsIgnoreCase(testLink.getTestType()))) {
-            System.out.println(testLink.getEndTime());
             if(null != testLink.getEndTime()) {
                 long startTimeInMillis = testLink.getStartTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 long endTimeInMillis = testLink.getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 long diffInMinutes = (endTimeInMillis - startTimeInMillis) / (1000 * 60); // Convert milliseconds to minutes
                 if (diffInMinutes < 5) {
-                    System.out.println("Test end time must be at least 5 minutes after start time.");
-                    return null;
+                    throw new IllegalArgumentException("test duration will be minimum 5 minutes");
                 }
-                testLink.setTimeDuration(diffInMinutes);
+                if(!(testLink.getTimeDuration()==diffInMinutes)){
+                    throw new IllegalArgumentException("Please enter correct test Time duration or EndTime");
+                }
             }else{
                 throw new IllegalArgumentException("Please enter END TIME ");
             }
@@ -74,11 +80,6 @@ public class TestLinkServiceImpl {
         testLink.setCreateDate(new Date());
         testLink.setTestProviderName(null!=user.get().getUserOrganisation()?user.get().getUserOrganisation():user.get().getUserSchoolOrCollege());
 
-        // Check if the start time is after the current time
-        if (testLink.getStartTime() == null || (testLink.getStartTime() != null && testLink.getStartTime().isBefore(LocalDateTime.now()))) {
-            System.out.println("Test start time must be in the future.");
-            return null;
-        }
         testLink.setUserId(userId);
         // Existing conditions for test type and test link
         return testInfoRepository.save(testLink);

@@ -16,7 +16,8 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
 
     void deleteByTestId(String testId);
 
-    List<TestResult> findByTestId(String testId);
+    @Query("SELECT tr FROM TestResult tr WHERE tr.testId = :testId")
+    List<TestResult> findByTestId( @Param("testId") String testId);
 
     @Query("SELECT tr FROM TestResult tr WHERE tr.userId = :userId AND tr.testId = :testId")
     List<TestResult> findByUserIdAndTestId(@Param("userId") String userId, @Param("testId") Long testId);
