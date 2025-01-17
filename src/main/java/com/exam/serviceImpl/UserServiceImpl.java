@@ -144,6 +144,31 @@ public class UserServiceImpl {
         return user;
     }
 
+
+    public User handleGoogleUser(String email, String name) throws Exception {
+        try {
+            Optional<User> optionalUser = userRepository.findByUserMailId(email);
+            if (optionalUser.isPresent()) {
+                return optionalUser.get();
+            } else {
+                // Create a new user for Google login
+                User user = new User();
+                user.setUserMailId(email);
+                user.setUserName(name);
+                user.setUserPassword(""); // No password for Google login
+                user.setUserType("GoogleUser");
+                userRepository.save(user);
+                return user;
+            }
+        } catch (Exception e) {
+            String errorMessage = "Error while handling Google user for email: " + email;
+            logger.error(errorMessage, e);
+            throw new Exception(errorMessage, e);
+        }
+    }
+
+
+
     public String automateQuizForm(String userName,String userId,String testId) {
 
         Optional<TestLink> testLink = testLinkRepository.findById(testId);
